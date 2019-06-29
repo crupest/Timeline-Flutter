@@ -1,54 +1,73 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:timeline/network.dart';
 
 import 'user.dart';
 
-class MyDrawer extends StatefulWidget {
-  @override
-  _MyDrawerState createState() {
-    return _MyDrawerState();
-  }
-}
+enum DrawerItem { home, administration, login }
 
-class _MyDrawerState extends State<MyDrawer> {
-  User _user;
-  StreamSubscription<User> _userSubscription;
+class MyDrawer extends StatelessWidget {
+  MyDrawer({@required this.selectedItem, Key key}) : super(key: key);
 
-  @override
-  void initState() {
-    super.initState();
-
-    _userSubscription = UserManager.getInstance().user.listen((User u) {
-      setState(() {
-        _user = u;
-      });
-    });
-  }
-
-  @override
-  void dispose() {
-    _userSubscription.cancel();
-    super.dispose();
-  }
+  final DrawerItem selectedItem;
 
   @override
   Widget build(BuildContext context) {
     var tiles = <Widget>[];
 
-    if (_user != null && _user.isAdmin) {
-      tiles.add(ListTile(
-        title: Text('Administration'),
-        onTap: () {
-          
-        },
-      ));
+    Widget createItem(DrawerItem item, String title, String route) {
+      var selected = selectedItem == item;
+      return ListTile(
+        title: Text(title),
+        selected: selected,
+        onTap: selected
+            ? null
+            : () {
+                Navigator.popAndPushNamed(context, route);
+              },
+      );
     }
+
+    tiles.add(createItem(DrawerItem.home, 'Home', '/'));
+
+    var user = UserManager.getInstance().currentUser;
+
+    if (user != null && user.isAdmin) {
+      tiles.add(createItem(
+          DrawerItem.administration, 'Administration', '/administration'));
+    }
+
+    var avatarUrl = apiBaseUrl +
+        '/user/' +
+        user.username +
+        '/avatar' +
+        '?token=' +
+        UserManager.getInstance().token;
 
     return Drawer(
       child: ListView(
         children: <Widget>[
           DrawerHeader(
-            child: Text(_user?.username ?? 'Not login.'),
+            child: user != null
+                ? Column(
+                    children: <Widget>[
+                      Image.network(
+                        avatarUrl,
+                        width: 100,
+                        height: 100,
+                      ),
+                      Center(child: Text(user.username)),
+                    ],
+                  )
+                : Center(
+                    child: selectedItem == DrawerItem.login
+                        ? Text('logining now')
+                        : FlatButton(
+                            child: Text('no login, tap to login'),
+                            onPressed: () {
+                              Navigator.popAndPushNamed(context, '/login');
+                            },
+                          ),
+                  ),
             decoration: BoxDecoration(color: Colors.blue),
           ),
           ...tiles

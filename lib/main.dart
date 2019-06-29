@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'user.dart';
+import 'administration.dart';
 import 'drawer.dart';
+import 'login.dart';
+import 'user.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,7 +28,12 @@ class MyApp extends StatelessWidget {
         // is not restarted.
         primarySwatch: Colors.blue,
       ),
-      home: MyHomePage(title: 'Timeline'),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => MyHomePage(title: 'Timeline'),
+        '/administration': (context) => AdministrationPage(),
+        '/login': (context) => LoginPage(),
+      },
     );
   }
 }
@@ -112,7 +119,9 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
-      drawer: MyDrawer(),
+      drawer: MyDrawer(
+        selectedItem: DrawerItem.home,
+      ),
     );
   }
 }
