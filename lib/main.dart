@@ -4,6 +4,7 @@ import 'administration.dart';
 import 'drawer.dart';
 import 'login.dart';
 import 'user.dart';
+import 'user_info.dart';
 
 void main() {
   runApp(MyApp());
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => MyHomePage(title: 'Timeline'),
         '/administration': (context) => AdministrationPage(),
         '/login': (context) => LoginPage(),
+        '/user-info': (context) => UserInfoPage(),
       },
     );
   }
