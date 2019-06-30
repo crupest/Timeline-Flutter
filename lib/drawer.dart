@@ -19,15 +19,19 @@ class MyDrawer extends StatelessWidget {
       return ListTile(
         title: Text(title),
         selected: selected,
+        dense: true,
         onTap: selected
             ? null
             : () {
-                Navigator.popAndPushNamed(context, route);
+                Navigator.popUntil(
+                    context, (route) => route.settings.name == '/');
+                if (route != '/') Navigator.pushNamed(context, route);
               },
       );
     }
 
     tiles.add(createItem(DrawerItem.home, 'Home', '/'));
+    tiles.add(Divider());
 
     var user = UserManager.getInstance().currentUser;
 
@@ -36,24 +40,19 @@ class MyDrawer extends StatelessWidget {
           DrawerItem.administration, 'Administration', '/administration'));
     }
 
-    var avatarUrl = apiBaseUrl +
-        '/user/' +
-        user.username +
-        '/avatar' +
-        '?token=' +
-        UserManager.getInstance().token;
-
     return Drawer(
-      child: ListView(
+      child: Column(
         children: <Widget>[
           DrawerHeader(
+            margin: EdgeInsets.zero,
             child: user != null
                 ? Column(
                     children: <Widget>[
-                      Image.network(
-                        avatarUrl,
-                        width: 100,
-                        height: 100,
+                      CircleAvatar(
+                        backgroundColor: Colors.white,
+                        backgroundImage: NetworkImage(
+                            '$apiBaseUrl/user/${user.username}/avatar?token=${UserManager.getInstance().token}'),
+                        radius: 50,
                       ),
                       Center(child: Text(user.username)),
                     ],
@@ -70,7 +69,12 @@ class MyDrawer extends StatelessWidget {
                   ),
             decoration: BoxDecoration(color: Colors.blue),
           ),
-          ...tiles
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: tiles,
+            ),
+          ),
         ],
       ),
     );
