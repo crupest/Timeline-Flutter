@@ -42,8 +42,9 @@ class MyDrawer extends StatelessWidget {
     if (user != null) {
       Widget avatar = CircleAvatar(
         backgroundColor: Colors.white,
-        backgroundImage: NetworkImage(
-            '$apiBaseUrl/user/${user.username}/avatar?token=${UserManager.getInstance().token}'),
+        backgroundImage: NetworkImage(UserManager.getInstance()
+            .generateUserAvatarUrl(
+                UserManager.getInstance().currentUser.username)),
         radius: 50,
       );
 

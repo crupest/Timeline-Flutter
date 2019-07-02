@@ -72,6 +72,17 @@ class UserManager {
     }
   }
 
+  String generateUserAvatarUrl(String username) {
+    assert(token != null);
+    return '$apiBaseUrl/user/$username/avatar?token=$token';
+  }
+
+  Future<User> fetchUserInfo(String username) async {
+    var res = await http.get('$apiBaseUrl/user/$username?token=$token');
+    var user = User.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+    return user;
+  }
+
   dispose() {
     _user.close();
   }
