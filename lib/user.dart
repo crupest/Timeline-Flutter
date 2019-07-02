@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:rxdart/subjects.dart';
 import 'package:http/http.dart' as http;
 
+import 'network.dart';
+
 class AlreadyLoginException implements Exception {
   final String message = 'A user has already login.';
 }
@@ -55,7 +57,7 @@ class UserManager {
   Future<User> login(String username, String password) async {
     if (currentUser != null) throw AlreadyLoginException();
     var res = await http.post(
-      'https://api.crupest.xyz/token/create',
+      '$apiBaseUrl/token/create',
       body: jsonEncode({'username': username, 'password': password}),
       headers: {'Content-Type': 'application/json'},
     );

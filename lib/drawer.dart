@@ -4,45 +4,37 @@ import 'package:timeline/network.dart';
 import 'user.dart';
 import 'user_info.dart';
 
-enum DrawerItem { none, currentUserInfo, home, administration, login }
+enum DrawerSelectedItem { none, selfUserInfo, home, administration }
 
 class MyDrawer extends StatelessWidget {
-  MyDrawer({@required this.selectedItem, Key key}) : super(key: key);
+  MyDrawer({this.selectedItem = DrawerSelectedItem.none, Key key})
+      : super(key: key);
 
-  final DrawerItem selectedItem;
-
-  static popToRoot(BuildContext context) {
-    Navigator.pop(context);
-    Navigator.popUntil(context, (route) => route.settings.name == '/');
-  }
+  final DrawerSelectedItem selectedItem;
 
   @override
   Widget build(BuildContext context) {
     var tiles = <Widget>[];
 
-    Widget createItem(DrawerItem item, String title, String route) {
+    Widget createItem(DrawerSelectedItem item, String title, String route) {
       var selected = selectedItem == item;
       return ListTile(
         title: Text(title),
         selected: selected,
         dense: true,
-        onTap: selected
-            ? null
-            : () {
-                popToRoot(context);
-                if (route != '/') Navigator.pushNamed(context, route);
-              },
+        onTap:
+            selected ? null : () => Navigator.popAndPushNamed(context, route),
       );
     }
 
-    tiles.add(createItem(DrawerItem.home, 'Home', '/'));
+    tiles.add(createItem(DrawerSelectedItem.home, 'Home', '/'));
     tiles.add(Divider());
 
     var user = UserManager.getInstance().currentUser;
 
     if (user != null && user.isAdmin) {
-      tiles.add(createItem(
-          DrawerItem.administration, 'Administration', '/administration'));
+      tiles.add(createItem(DrawerSelectedItem.administration, 'Administration',
+          '/administration'));
     }
 
     Widget headerContent;
@@ -55,13 +47,12 @@ class MyDrawer extends StatelessWidget {
         radius: 50,
       );
 
-      if (selectedItem != DrawerItem.currentUserInfo) {
+      if (selectedItem != DrawerSelectedItem.selfUserInfo) {
         avatar = GestureDetector(
           behavior: HitTestBehavior.translucent,
           child: avatar,
           onTap: () {
-            popToRoot(context);
-            Navigator.pushNamed(context, '/user-info',
+            Navigator.popAndPushNamed(context, '/user-info',
                 arguments: UserInfoRouteParams(user.username));
           },
         );
@@ -75,15 +66,12 @@ class MyDrawer extends StatelessWidget {
       );
     } else {
       headerContent = Center(
-        child: selectedItem == DrawerItem.login
-            ? Text('logining now')
-            : FlatButton(
-                child: Text('no login, tap to login'),
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.popAndPushNamed(context, '/login');
-                },
-              ),
+        child: FlatButton(
+          child: Text('no login, tap to login'),
+          onPressed: () {
+            Navigator.popAndPushNamed(context, '/login');
+          },
+        ),
       );
     }
 

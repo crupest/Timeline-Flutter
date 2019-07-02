@@ -25,7 +25,7 @@ class UserInfoPage extends StatelessWidget {
         child: Text(params.username),
       ),
       drawer: MyDrawer(
-        selectedItem: self ? DrawerItem.currentUserInfo : DrawerItem.none,
+        selectedItem: self ? DrawerSelectedItem.selfUserInfo : DrawerSelectedItem.none,
       ),
     );
   }

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import 'drawer.dart';
 import 'user.dart';
 
 class LoginPage extends StatefulWidget {
@@ -26,6 +25,12 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         title: Text('Login'),
       ),
       body: Column(children: <Widget>[
@@ -75,9 +80,6 @@ class _LoginPageState extends State<LoginPage> {
           },
         )
       ]),
-      drawer: MyDrawer(
-        selectedItem: DrawerItem.login,
-      ),
     );
   }
 }

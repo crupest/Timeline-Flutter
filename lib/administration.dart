@@ -13,7 +13,7 @@ class AdministrationPage extends StatelessWidget {
         child: Text('Administration page work'),
       ),
       drawer: MyDrawer(
-        selectedItem: DrawerItem.administration,
+        selectedItem: DrawerSelectedItem.administration,
       ),
     );
   }
