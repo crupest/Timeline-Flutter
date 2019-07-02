@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:timeline/network.dart';
 
 import 'user.dart';
 import 'user_info.dart';

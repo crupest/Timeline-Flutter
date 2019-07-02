@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'drawer.dart';
+import 'user_admin.dart';
 
 class AdministrationPage extends StatefulWidget {
   @override
@@ -35,7 +36,7 @@ class _AdministrationPageState extends State<AdministrationPage>
       body: TabBarView(
         controller: _tabController,
         children: <Widget>[
-          Center(child: Text('Users Page')),
+          UserAdminPage(),
           Center(child: Text('More Page')),
         ],
       ),
