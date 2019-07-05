@@ -10,7 +10,9 @@ class _UserAdminService {
     ];
   }
 
-  Future changePassword(String username, String newPassword) async {}
+  Future changePassword(String username, String newPassword) {
+    return Future.delayed(const Duration(seconds: 2), () {});
+  }
 
   Future removeUser(String username) async {}
 }
@@ -74,8 +76,11 @@ class _UserAdminPageState extends State<UserAdminPage> {
                     showDialog(
                       context: context,
                       barrierDismissible: false,
-                      builder: (context) =>
-                          _ChangePasswordDialog(username: user.username),
+                      builder: (context) => _ChangePasswordDialog(
+                            username: user.username,
+                            changePasswordFunction: (username, password) =>
+                                _service.changePassword(username, password),
+                          ),
                     );
                     return;
                   case _UserAction.remove:
@@ -90,9 +95,16 @@ class _UserAdminPageState extends State<UserAdminPage> {
   }
 }
 
-class _ChangePasswordDialog extends StatefulWidget {
-  _ChangePasswordDialog({@required this.username, Key key});
+typedef Future ChangePasswordFunction(String username, String password);
 
+class _ChangePasswordDialog extends StatefulWidget {
+  _ChangePasswordDialog({
+    @required this.username,
+    @required this.changePasswordFunction,
+    Key key,
+  });
+
+  final ChangePasswordFunction changePasswordFunction;
   final String username;
 
   @override
@@ -101,14 +113,123 @@ class _ChangePasswordDialog extends StatefulWidget {
   }
 }
 
+enum _ChangePasswordDialogStep { input, progress, done, error }
+
 class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
+  _ChangePasswordDialogStep _step;
+
+  TextEditingController _controller;
+
   @override
   void initState() {
     super.initState();
+    _step = _ChangePasswordDialogStep.input;
+    _controller = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(child: Text('Changing password for ${widget.username}.'));
+    List<Widget> children;
+
+    switch (_step) {
+      case _ChangePasswordDialogStep.input:
+        children = [
+          TextField(
+            controller: _controller,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              labelText: 'new password',
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  setState(() {
+                    _step = _ChangePasswordDialogStep.progress;
+                  });
+                  widget
+                      .changePasswordFunction(widget.username, _controller.text)
+                      .then((_) {
+                    setState(() {
+                      _step = _ChangePasswordDialogStep.done;
+                    });
+                  }, onError: (_) {
+                    setState(() {
+                      _step = _ChangePasswordDialogStep.error;
+                    });
+                  });
+                },
+                child: Text('Ok'),
+              ),
+            ],
+          )
+        ];
+        break;
+      case _ChangePasswordDialogStep.progress:
+        children = [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(),
+          )
+        ];
+        break;
+      case _ChangePasswordDialogStep.done:
+        children = [
+          Center(
+            child: Text(
+              'Success!',
+              style: Theme.of(context)
+                  .textTheme
+                  .subhead
+                  .copyWith(color: Colors.green),
+            ),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  'Ok',
+                ),
+              )
+            ],
+          ),
+        ];
+        break;
+      case _ChangePasswordDialogStep.error:
+        children = [
+          Text('Error!'),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Ok'),
+              )
+            ],
+          ),
+        ];
+        break;
+    }
+
+    return SimpleDialog(
+      title: Text('You are changing password for ${widget.username} !'),
+      children: children,
+    );
   }
 }
