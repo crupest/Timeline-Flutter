@@ -11,10 +11,14 @@ class _UserAdminService {
   }
 
   Future changePassword(String username, String newPassword) {
-    return Future.delayed(const Duration(seconds: 2), () {});
+    return Future.delayed(const Duration(seconds: 2), () {
+      throw Exception('Hahaha mock error.');
+    });
   }
 
-  Future removeUser(String username) async {}
+  Future removeUser(String username) {
+    return Future.delayed(const Duration(seconds: 2), () {});
+  }
 }
 
 class UserAdminPage extends StatefulWidget {
@@ -84,6 +88,19 @@ class _UserAdminPageState extends State<UserAdminPage> {
                     );
                     return;
                   case _UserAction.remove:
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => _DeleteDialog(
+                            username: user.username,
+                            deleteUserFunction: () async {
+                              await _service.removeUser(user.username);
+                              setState(() {
+                                _users.removeAt(index);
+                              });
+                            },
+                          ),
+                    );
                     return;
                 }
               },
@@ -91,6 +108,150 @@ class _UserAdminPageState extends State<UserAdminPage> {
           ),
         );
       },
+    );
+  }
+}
+
+enum _OperationStep { input, progress, done }
+typedef Future _OperationFunction();
+
+class _OperationDialog extends StatefulWidget {
+  final Widget title;
+  final Widget subtitle;
+
+  final List<Widget> inputContent;
+
+  final _OperationFunction operationFunction;
+
+  _OperationDialog({
+    @required this.title,
+    @required this.subtitle,
+    this.inputContent = const [],
+    @required this.operationFunction,
+    Key key,
+  })  : assert(operationFunction != null),
+        super(key: key);
+
+  @override
+  _OperationDialogState createState() => _OperationDialogState();
+}
+
+class _OperationDialogState extends State<_OperationDialog> {
+  _OperationStep _step;
+  dynamic _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _step = _OperationStep.input;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var subtitle = widget.subtitle;
+
+    List<Widget> content;
+
+    switch (_step) {
+      case _OperationStep.input:
+        content = [
+          subtitle,
+          ...widget.inputContent,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: <Widget>[
+              FlatButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel'),
+              ),
+              FlatButton(
+                onPressed: () {
+                  setState(() {
+                    _step = _OperationStep.progress;
+                  });
+                  widget.operationFunction().then((_) {
+                    setState(() {
+                      _step = _OperationStep.done;
+                    });
+                  }, onError: (error) {
+                    setState(() {
+                      _step = _OperationStep.done;
+                      _error = error;
+                    });
+                  });
+                },
+                child: Text('Confirm'),
+              ),
+            ],
+          )
+        ];
+        break;
+      case _OperationStep.progress:
+        content = [
+          subtitle,
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(),
+          ),
+        ];
+        break;
+      case _OperationStep.done:
+        var buttonBar = Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: <Widget>[
+            FlatButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text(
+                'Ok',
+              ),
+            )
+          ],
+        );
+        if (_error == null) {
+          content = [
+            subtitle,
+            Center(
+              child: Text(
+                'Success!',
+                style: Theme.of(context)
+                    .textTheme
+                    .subhead
+                    .copyWith(color: Colors.green),
+              ),
+            ),
+            buttonBar
+          ];
+        } else {
+          content = [
+            subtitle,
+            Center(
+              child: Text(
+                'Error! $_error',
+                style: Theme.of(context)
+                    .textTheme
+                    .subhead
+                    .copyWith(color: Colors.red),
+              ),
+            ),
+            buttonBar
+          ];
+        }
+        break;
+    }
+
+    return AlertDialog(
+      title: widget.title,
+      content: IntrinsicHeight(
+        child: Column(
+          children: content,
+        ),
+      ),
     );
   }
 }
@@ -113,123 +274,50 @@ class _ChangePasswordDialog extends StatefulWidget {
   }
 }
 
-enum _ChangePasswordDialogStep { input, progress, done, error }
-
 class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
-  _ChangePasswordDialogStep _step;
-
   TextEditingController _controller;
 
   @override
   void initState() {
     super.initState();
-    _step = _ChangePasswordDialogStep.input;
     _controller = TextEditingController();
   }
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> children;
+    return _OperationDialog(
+      title: Text('Dangerous!'),
+      subtitle: Text('You are changing password for ${widget.username}.'),
+      inputContent: <Widget>[
+        TextField(
+          decoration: InputDecoration(
+              border: UnderlineInputBorder(), labelText: 'new password'),
+          controller: _controller,
+        ),
+      ],
+      operationFunction: () {
+        return widget.changePasswordFunction(widget.username, _controller.text);
+      },
+    );
+  }
+}
 
-    switch (_step) {
-      case _ChangePasswordDialogStep.input:
-        children = [
-          TextField(
-            controller: _controller,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'new password',
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Cancel'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  setState(() {
-                    _step = _ChangePasswordDialogStep.progress;
-                  });
-                  widget
-                      .changePasswordFunction(widget.username, _controller.text)
-                      .then((_) {
-                    setState(() {
-                      _step = _ChangePasswordDialogStep.done;
-                    });
-                  }, onError: (_) {
-                    setState(() {
-                      _step = _ChangePasswordDialogStep.error;
-                    });
-                  });
-                },
-                child: Text('Ok'),
-              ),
-            ],
-          )
-        ];
-        break;
-      case _ChangePasswordDialogStep.progress:
-        children = [
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            child: CircularProgressIndicator(),
-          )
-        ];
-        break;
-      case _ChangePasswordDialogStep.done:
-        children = [
-          Center(
-            child: Text(
-              'Success!',
-              style: Theme.of(context)
-                  .textTheme
-                  .subhead
-                  .copyWith(color: Colors.green),
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text(
-                  'Ok',
-                ),
-              )
-            ],
-          ),
-        ];
-        break;
-      case _ChangePasswordDialogStep.error:
-        children = [
-          Text('Error!'),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Ok'),
-              )
-            ],
-          ),
-        ];
-        break;
-    }
+class _DeleteDialog extends StatelessWidget {
+  _DeleteDialog({
+    @required this.username,
+    @required this.deleteUserFunction,
+    Key key,
+  }) : super(key: key);
 
-    return SimpleDialog(
-      title: Text('You are changing password for ${widget.username} !'),
-      children: children,
+  final String username;
+  final _OperationFunction deleteUserFunction;
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperationDialog(
+      title: Text('Dangerous!'),
+      subtitle: Text('You are deleting $username !'),
+      operationFunction: deleteUserFunction,
     );
   }
 }
