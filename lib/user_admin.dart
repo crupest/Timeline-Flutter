@@ -19,6 +19,10 @@ class _UserAdminService {
   Future removeUser(String username) {
     return Future.delayed(const Duration(seconds: 2), () {});
   }
+
+  Future changePermission(String username, bool isAdmin) {
+    return Future.delayed(const Duration(seconds: 2), () {});
+  }
 }
 
 class UserAdminPage extends StatefulWidget {
@@ -30,6 +34,7 @@ class UserAdminPage extends StatefulWidget {
 
 enum _UserAction {
   changePassword,
+  changePermission,
   remove,
 }
 
@@ -69,6 +74,10 @@ class _UserAdminPageState extends State<UserAdminPage> {
                     child: Text('change password'),
                   ),
                   PopupMenuItem<_UserAction>(
+                    value: _UserAction.changePermission,
+                    child: Text('change permission'),
+                  ),
+                  PopupMenuItem<_UserAction>(
                     value: _UserAction.remove,
                     child: Text('remove user'),
                   ),
@@ -81,10 +90,25 @@ class _UserAdminPageState extends State<UserAdminPage> {
                       context: context,
                       barrierDismissible: false,
                       builder: (context) => _ChangePasswordDialog(
-                            username: user.username,
-                            changePasswordFunction: (username, password) =>
-                                _service.changePassword(username, password),
-                          ),
+                        username: user.username,
+                        changePasswordFunction: (username, password) =>
+                            _service.changePassword(username, password),
+                      ),
+                    );
+                    return;
+                  case _UserAction.changePermission:
+                    showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) => _ChangePermissionDialog(
+                          username: user.username,
+                          isAdmin: !user.isAdmin,
+                          changePermissionFunction: (username, isAdmin) async {
+                            await _service.changePermission(username, isAdmin);
+                            setState(() {
+                              user.isAdmin = isAdmin;
+                            });
+                          }),
                     );
                     return;
                   case _UserAction.remove:
@@ -92,14 +116,14 @@ class _UserAdminPageState extends State<UserAdminPage> {
                       context: context,
                       barrierDismissible: false,
                       builder: (context) => _DeleteDialog(
-                            username: user.username,
-                            deleteUserFunction: () async {
-                              await _service.removeUser(user.username);
-                              setState(() {
-                                _users.removeAt(index);
-                              });
-                            },
-                          ),
+                        username: user.username,
+                        deleteUserFunction: () async {
+                          await _service.removeUser(user.username);
+                          setState(() {
+                            _users.removeAt(index);
+                          });
+                        },
+                      ),
                     );
                     return;
                 }
@@ -298,6 +322,31 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
       operationFunction: () {
         return widget.changePasswordFunction(widget.username, _controller.text);
       },
+    );
+  }
+}
+
+typedef Future _ChangePermissionFunction(String username, bool isAdmin);
+
+class _ChangePermissionDialog extends StatelessWidget {
+  _ChangePermissionDialog({
+    @required this.username,
+    @required this.isAdmin,
+    @required this.changePermissionFunction,
+    Key key,
+  }) : super(key: key);
+
+  final String username;
+  final bool isAdmin;
+  final _ChangePermissionFunction changePermissionFunction;
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperationDialog(
+      title: Text('Dangerous!'),
+      subtitle: Text(
+          'You are change $username to ${isAdmin ? "administrator" : "user"} !'),
+      operationFunction: () => changePermissionFunction(username, isAdmin),
     );
   }
 }
