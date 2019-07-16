@@ -57,81 +57,95 @@ class _UserAdminPageState extends State<UserAdminPage> {
   @override
   Widget build(BuildContext context) {
     if (_users == null) return LinearProgressIndicator();
-    return ListView.builder(
-      itemCount: _users.length,
-      itemBuilder: (context, index) {
-        final user = _users[index];
-        return Card(
-          child: ListTile(
-            title: Text(user.username),
-            subtitle: Text(user.isAdmin ? 'administrator' : 'user'),
-            trailing: PopupMenuButton<_UserAction>(
-              icon: Icon(Icons.more_vert),
-              itemBuilder: (context) {
-                return <PopupMenuEntry<_UserAction>>[
-                  PopupMenuItem<_UserAction>(
-                    value: _UserAction.changePassword,
-                    child: Text('change password'),
-                  ),
-                  PopupMenuItem<_UserAction>(
-                    value: _UserAction.changePermission,
-                    child: Text('change permission'),
-                  ),
-                  PopupMenuItem<_UserAction>(
-                    value: _UserAction.remove,
-                    child: Text('remove user'),
-                  ),
-                ];
-              },
-              onSelected: (_UserAction action) {
-                switch (action) {
-                  case _UserAction.changePassword:
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => _ChangePasswordDialog(
-                        username: user.username,
-                        changePasswordFunction: (username, password) =>
-                            _service.changePassword(username, password),
+    return Stack(
+      children: <Widget>[
+        ListView.builder(
+          itemCount: _users.length,
+          itemBuilder: (context, index) {
+            final user = _users[index];
+            return Card(
+              child: ListTile(
+                title: Text(user.username),
+                subtitle: Text(user.isAdmin ? 'administrator' : 'user'),
+                trailing: PopupMenuButton<_UserAction>(
+                  icon: Icon(Icons.more_vert),
+                  itemBuilder: (context) {
+                    return <PopupMenuEntry<_UserAction>>[
+                      PopupMenuItem<_UserAction>(
+                        value: _UserAction.changePassword,
+                        child: Text('change password'),
                       ),
-                    );
-                    return;
-                  case _UserAction.changePermission:
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => _ChangePermissionDialog(
-                          username: user.username,
-                          isAdmin: !user.isAdmin,
-                          changePermissionFunction: (username, isAdmin) async {
-                            await _service.changePermission(username, isAdmin);
-                            setState(() {
-                              user.isAdmin = isAdmin;
-                            });
-                          }),
-                    );
-                    return;
-                  case _UserAction.remove:
-                    showDialog(
-                      context: context,
-                      barrierDismissible: false,
-                      builder: (context) => _DeleteDialog(
-                        username: user.username,
-                        deleteUserFunction: () async {
-                          await _service.removeUser(user.username);
-                          setState(() {
-                            _users.removeAt(index);
-                          });
-                        },
+                      PopupMenuItem<_UserAction>(
+                        value: _UserAction.changePermission,
+                        child: Text('change permission'),
                       ),
-                    );
-                    return;
-                }
-              },
-            ),
+                      PopupMenuItem<_UserAction>(
+                        value: _UserAction.remove,
+                        child: Text('remove user'),
+                      ),
+                    ];
+                  },
+                  onSelected: (_UserAction action) {
+                    switch (action) {
+                      case _UserAction.changePassword:
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => _ChangePasswordDialog(
+                            username: user.username,
+                            changePasswordFunction: (username, password) =>
+                                _service.changePassword(username, password),
+                          ),
+                        );
+                        return;
+                      case _UserAction.changePermission:
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => _ChangePermissionDialog(
+                              username: user.username,
+                              isAdmin: !user.isAdmin,
+                              changePermissionFunction:
+                                  (username, isAdmin) async {
+                                await _service.changePermission(
+                                    username, isAdmin);
+                                setState(() {
+                                  user.isAdmin = isAdmin;
+                                });
+                              }),
+                        );
+                        return;
+                      case _UserAction.remove:
+                        showDialog(
+                          context: context,
+                          barrierDismissible: false,
+                          builder: (context) => _DeleteDialog(
+                            username: user.username,
+                            deleteUserFunction: () async {
+                              await _service.removeUser(user.username);
+                              setState(() {
+                                _users.removeAt(index);
+                              });
+                            },
+                          ),
+                        );
+                        return;
+                    }
+                  },
+                ),
+              ),
+            );
+          },
+        ),
+        Container(
+          alignment: Alignment.bottomRight,
+          margin: EdgeInsets.all(18),
+          child: FloatingActionButton(
+            child: Icon(Icons.add),
+            onPressed: () {},
           ),
-        );
-      },
+        ),
+      ],
     );
   }
 }
