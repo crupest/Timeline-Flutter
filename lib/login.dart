@@ -12,28 +12,25 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   TextEditingController _usernameController;
   TextEditingController _passwordController;
-  Future<User> _loginFuture;
+  bool _isProcessing;
+  dynamic _error;
 
   @override
   void initState() {
     super.initState();
     _usernameController = TextEditingController();
     _passwordController = TextEditingController();
+    _isProcessing = false;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text('Login'),
-      ),
-      body: Column(children: <Widget>[
+    List<Widget> children;
+
+    if (_isProcessing) {
+      children = [CircularProgressIndicator()];
+    } else {
+      children = [
         TextField(
           controller: _usernameController,
           decoration: InputDecoration(
@@ -47,39 +44,40 @@ class _LoginPageState extends State<LoginPage> {
             labelText: 'password',
           ),
         ),
-        FutureBuilder(
-          future: _loginFuture,
-          builder: (context, snapshot) {
-            Widget createButton() {
-              return RaisedButton(
-                  child: Text('login'),
-                  onPressed: () {
-                    setState(() {
-                      _loginFuture = UserManager.getInstance().login(
-                          _usernameController.text, _passwordController.text);
-                      _loginFuture.then((_) {
-                        Navigator.pop(context);
-                      });
-                    });
-                  });
-            }
+      ];
+      if (_error != null) {
+        children.add(Text('Login failed. Error: $_error'));
+      }
+      children.add(RaisedButton(
+        child: Text('login'),
+        onPressed: () {
+          setState(() {
+            _isProcessing = true;
+          });
+          UserManager.getInstance()
+              .login(_usernameController.text, _passwordController.text)
+              .then((_) {
+            Navigator.pop(context);
+          }, onError: (error) {
+            setState(() {
+              _error = error;
+            });
+          });
+        },
+      ));
+    }
 
-            if (snapshot.connectionState == ConnectionState.none) {
-              return createButton();
-            } else if (snapshot.connectionState == ConnectionState.done &&
-                snapshot.hasError) {
-              return Column(
-                children: <Widget>[
-                  Text('Login failed.'),
-                  createButton(),
-                ],
-              );
-            } else {
-              return CircularProgressIndicator();
-            }
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.close),
+          onPressed: () {
+            Navigator.pop(context);
           },
-        )
-      ]),
+        ),
+        title: Text('Login'),
+      ),
+      body: Column(children: children),
     );
   }
 }
