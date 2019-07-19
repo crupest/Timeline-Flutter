@@ -359,14 +359,17 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
           decoration: InputDecoration(
               border: UnderlineInputBorder(), labelText: 'password'),
         ),
-        Checkbox(
-          onChanged: (value) {
-            setState(() {
-              _isAdmin = value;
-            });
-          },
-          value: _isAdmin,
-        )
+        Row(children: <Widget>[
+          Checkbox(
+            onChanged: (value) {
+              setState(() {
+                _isAdmin = value;
+              });
+            },
+            value: _isAdmin,
+          ),
+          Text('administrator'),
+        ]),
       ],
     );
   }
