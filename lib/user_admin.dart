@@ -10,6 +10,10 @@ class _UserAdminService {
     ];
   }
 
+  Future createUser(String username, String password, bool isAdmin) {
+    return Future.delayed(const Duration(seconds: 2), () {});
+  }
+
   Future changePassword(String username, String newPassword) {
     return Future.delayed(const Duration(seconds: 2), () {
       throw Exception('Hahaha mock error.');
@@ -142,7 +146,22 @@ class _UserAdminPageState extends State<UserAdminPage> {
           margin: EdgeInsets.all(18),
           child: FloatingActionButton(
             child: Icon(Icons.add),
-            onPressed: () {},
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => _CreateUserDialog(
+                        createUserFunction:
+                            (username, password, isAdmin) async {
+                          await this
+                              ._service
+                              .createUser(username, password, isAdmin);
+                          setState(() {
+                            _users.add(User(username, isAdmin: isAdmin));
+                          });
+                        },
+                      ));
+            },
           ),
         ),
       ],
@@ -290,6 +309,65 @@ class _OperationDialogState extends State<_OperationDialog> {
           children: content,
         ),
       ),
+    );
+  }
+}
+
+typedef Future _CreateUserFunction(
+    String username, String password, bool isAdmin);
+
+class _CreateUserDialog extends StatefulWidget {
+  _CreateUserDialog({
+    this.createUserFunction,
+    Key key,
+  }) : super(key: key);
+
+  final _CreateUserFunction createUserFunction;
+
+  @override
+  _CreateUserDialogState createState() => _CreateUserDialogState();
+}
+
+class _CreateUserDialogState extends State<_CreateUserDialog> {
+  TextEditingController _usernameController;
+  TextEditingController _passwordController;
+  bool _isAdmin;
+
+  @override
+  void initState() {
+    super.initState();
+    _usernameController = TextEditingController();
+    _passwordController = TextEditingController();
+    _isAdmin = false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperationDialog(
+      title: Text('Create!'),
+      subtitle: Text('You are creating a user.'),
+      operationFunction: () => widget.createUserFunction(
+          _usernameController.text, _passwordController.text, _isAdmin),
+      inputContent: <Widget>[
+        TextField(
+          controller: _usernameController,
+          decoration: InputDecoration(
+              border: UnderlineInputBorder(), labelText: 'username'),
+        ),
+        TextField(
+          controller: _passwordController,
+          decoration: InputDecoration(
+              border: UnderlineInputBorder(), labelText: 'password'),
+        ),
+        Checkbox(
+          onChanged: (value) {
+            setState(() {
+              _isAdmin = value;
+            });
+          },
+          value: _isAdmin,
+        )
+      ],
     );
   }
 }
