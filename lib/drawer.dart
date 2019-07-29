@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'user.dart';
-import 'user_info.dart';
 
-enum DrawerSelectedItem { none, selfUserInfo, home, administration }
+enum DrawerSelectedItem { none, home, administration }
 
 class MyDrawer extends StatelessWidget {
   MyDrawer({this.selectedItem = DrawerSelectedItem.none, Key key})
@@ -31,7 +30,7 @@ class MyDrawer extends StatelessWidget {
 
     var user = UserManager.getInstance().currentUser;
 
-    if (user != null && user.isAdmin) {
+    if (user != null && user.administrator) {
       tiles.add(createItem(DrawerSelectedItem.administration, 'Administration',
           '/administration'));
     }
@@ -39,29 +38,11 @@ class MyDrawer extends StatelessWidget {
     Widget headerContent;
 
     if (user != null) {
-      Widget avatar = CircleAvatar(
-        backgroundColor: Colors.white,
-        backgroundImage: NetworkImage(UserManager.getInstance()
-            .generateUserAvatarUrl(
-                UserManager.getInstance().currentUser.username)),
-        radius: 50,
-      );
-
-      if (selectedItem != DrawerSelectedItem.selfUserInfo) {
-        avatar = GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          child: avatar,
-          onTap: () {
-            Navigator.popAndPushNamed(context, '/user-info',
-                arguments: UserInfoRouteParams(user.username));
-          },
-        );
-      }
-
       headerContent = Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          avatar,
-          Center(child: Text(user.username)),
+          Text(user.username),
+          Text('welcome!'),
         ],
       );
     } else {
@@ -77,6 +58,7 @@ class MyDrawer extends StatelessWidget {
 
     return Drawer(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           DrawerHeader(
             margin: EdgeInsets.zero,

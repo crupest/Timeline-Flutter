@@ -5,8 +5,8 @@ import 'user.dart';
 class _UserAdminService {
   Future<List<User>> fetchUserList() async {
     return [
-      User('user1', isAdmin: true),
-      User('user2', isAdmin: false),
+      User('user1', administrator: true),
+      User('user2', administrator: false),
     ];
   }
 
@@ -70,7 +70,7 @@ class _UserAdminPageState extends State<UserAdminPage> {
             return Card(
               child: ListTile(
                 title: Text(user.username),
-                subtitle: Text(user.isAdmin ? 'administrator' : 'user'),
+                subtitle: Text(user.administrator ? 'administrator' : 'user'),
                 trailing: PopupMenuButton<_UserAction>(
                   icon: Icon(Icons.more_vert),
                   itemBuilder: (context) {
@@ -108,13 +108,13 @@ class _UserAdminPageState extends State<UserAdminPage> {
                           barrierDismissible: false,
                           builder: (context) => _ChangePermissionDialog(
                               username: user.username,
-                              isAdmin: !user.isAdmin,
+                              isAdmin: !user.administrator,
                               changePermissionFunction:
                                   (username, isAdmin) async {
                                 await _service.changePermission(
                                     username, isAdmin);
                                 setState(() {
-                                  user.isAdmin = isAdmin;
+                                  user.administrator = isAdmin;
                                 });
                               }),
                         );
@@ -157,7 +157,7 @@ class _UserAdminPageState extends State<UserAdminPage> {
                               ._service
                               .createUser(username, password, isAdmin);
                           setState(() {
-                            _users.add(User(username, isAdmin: isAdmin));
+                            _users.add(User(username, administrator: isAdmin));
                           });
                         },
                       ));

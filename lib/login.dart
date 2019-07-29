@@ -60,6 +60,7 @@ class _LoginPageState extends State<LoginPage> {
             Navigator.pop(context);
           }, onError: (error) {
             setState(() {
+              _isProcessing = false;
               _error = error;
             });
           });

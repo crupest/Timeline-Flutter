@@ -5,19 +5,19 @@ import 'package:http/http.dart' as http;
 
 import 'network.dart';
 
-class AlreadyLoginException implements Exception {
-  final String message = 'A user has already login.';
-}
-
 class User {
-  User(this.username, {this.isAdmin = false});
+  User(this.username, {this.administrator = false});
 
   String username;
-  bool isAdmin;
+  bool administrator;
 
   User.fromJson(Map<String, dynamic> json)
       : username = json['username'],
-        isAdmin = json['isAdmin'];
+        administrator = json['administrator'];
+}
+
+class AlreadyLoginException implements Exception {
+  final String message = 'A user has already login.';
 }
 
 class UserManager {
@@ -61,25 +61,13 @@ class UserManager {
       body: jsonEncode({'username': username, 'password': password}),
       headers: {'Content-Type': 'application/json'},
     );
-    var body = jsonDecode(res.body) as Map<String, dynamic>;
-    if (body['success'] as bool) {
-      var user = User.fromJson(body['userInfo']);
-      _token = body['token'] as String;
-      _user.add(user);
-      return user;
-    } else {
-      throw Exception();
+    if (res.statusCode != 200) {
+      throw Exception('Login failed.'); // TODO: Add detailed error message.
     }
-  }
-
-  String generateUserAvatarUrl(String username) {
-    assert(token != null);
-    return '$apiBaseUrl/user/$username/avatar?token=$token';
-  }
-
-  Future<User> fetchUserInfo(String username) async {
-    var res = await http.get('$apiBaseUrl/user/$username?token=$token');
-    var user = User.fromJson(jsonDecode(res.body) as Map<String, dynamic>);
+    var body = jsonDecode(res.body) as Map<String, dynamic>;
+    var user = User.fromJson(body['user']);
+    _token = body['token'] as String;
+    _user.add(user);
     return user;
   }
 
