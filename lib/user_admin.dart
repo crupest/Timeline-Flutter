@@ -1,31 +1,58 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 
 import 'user.dart';
+import 'network.dart';
 
 class _UserAdminService {
+  // TODO: Complete exception messages.
+
+  static const String _key_password = User.key_password;
+  static const String _key_administrator = User.key_administrator;
+
+  String _generateUrl(String username) =>
+      '$apiBaseUrl/user/$username?token=${UserManager.getInstance().token}';
+
   Future<List<User>> fetchUserList() async {
-    return [
-      User('user1', administrator: true),
-      User('user2', administrator: false),
-    ];
+    var res =
+        await get('$apiBaseUrl/users?token=${UserManager.getInstance().token}');
+    if (res.statusCode != 200) throw Exception();
+    var rawList = jsonDecode(res.body) as List<dynamic>;
+    return rawList.map((raw) => User.fromJson(raw)).toList();
   }
 
-  Future createUser(String username, String password, bool isAdmin) {
-    return Future.delayed(const Duration(seconds: 2), () {});
+  Future createUser(
+      String username, String password, bool administrator) async {
+    var res = await put(_generateUrl(username),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(
+            {_key_password: password, _key_administrator: administrator}));
+    if (res.statusCode != 201) throw Exception();
   }
 
-  Future changePassword(String username, String newPassword) {
-    return Future.delayed(const Duration(seconds: 2), () {
-      throw Exception('Hahaha mock error.');
-    });
+  Future changePassword(String username, String newPassword) async {
+    var res = await patch(_generateUrl(username),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          _key_password: newPassword,
+        }));
+    if (res.statusCode != 200) throw Exception();
   }
 
-  Future removeUser(String username) {
-    return Future.delayed(const Duration(seconds: 2), () {});
+  Future removeUser(String username) async {
+    var res = await delete(_generateUrl(username));
+    if (res.statusCode != 200) throw Exception();
   }
 
-  Future changePermission(String username, bool isAdmin) {
-    return Future.delayed(const Duration(seconds: 2), () {});
+  Future changePermission(String username, bool administrator) async {
+    var res = await patch(_generateUrl(username),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          _key_administrator: administrator,
+        }));
+    if (res.statusCode != 200) throw Exception();
   }
 }
 

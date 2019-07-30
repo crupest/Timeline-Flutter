@@ -6,14 +6,18 @@ import 'package:http/http.dart' as http;
 import 'network.dart';
 
 class User {
+  static const String key_username = 'username';
+  static const String key_password = 'password';
+  static const String key_administrator = 'administrator';
+
   User(this.username, {this.administrator = false});
 
   String username;
   bool administrator;
 
   User.fromJson(Map<String, dynamic> json)
-      : username = json['username'],
-        administrator = json['administrator'];
+      : username = json[key_username],
+        administrator = json[key_administrator];
 }
 
 class AlreadyLoginException implements Exception {
@@ -58,7 +62,8 @@ class UserManager {
     if (currentUser != null) throw AlreadyLoginException();
     var res = await http.post(
       '$apiBaseUrl/token/create',
-      body: jsonEncode({'username': username, 'password': password}),
+      body: jsonEncode(
+          {User.key_username: username, User.key_password: password}),
       headers: {'Content-Type': 'application/json'},
     );
     if (res.statusCode != 200) {
