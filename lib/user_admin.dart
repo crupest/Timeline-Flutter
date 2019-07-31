@@ -369,6 +369,13 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
   }
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _OperationDialog(
       title: Text('Create!'),
@@ -427,6 +434,12 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
   void initState() {
     super.initState();
     _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
