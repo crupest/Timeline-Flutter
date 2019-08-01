@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'user.dart';
 import 'network.dart';
@@ -74,99 +75,110 @@ class _UserAdminPageState extends State<UserAdminPage> {
 
   List<User> _users;
 
+  RefreshController _refreshController;
+
+  Future _onRefresh() async {
+    var list = await _service.fetchUserList();
+    setState(() {
+      _users = list;
+    });
+    _refreshController.refreshCompleted();
+  }
+
   @override
   void initState() {
     super.initState();
     _service = _UserAdminService();
-    _service.fetchUserList().then((users) {
-      setState(() {
-        _users = users;
-      });
-    });
+    _refreshController = RefreshController(initialRefresh: true);
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_users == null) return LinearProgressIndicator();
     return Stack(
       children: <Widget>[
-        ListView.builder(
-          itemCount: _users.length,
-          itemBuilder: (context, index) {
-            final user = _users[index];
-            return Card(
-              child: ListTile(
-                title: Text(user.username),
-                subtitle: Text(user.administrator ? 'administrator' : 'user'),
-                trailing: PopupMenuButton<_UserAction>(
-                  icon: Icon(Icons.more_vert),
-                  itemBuilder: (context) {
-                    return <PopupMenuEntry<_UserAction>>[
-                      PopupMenuItem<_UserAction>(
-                        value: _UserAction.changePassword,
-                        child: Text('change password'),
-                      ),
-                      PopupMenuItem<_UserAction>(
-                        value: _UserAction.changePermission,
-                        child: Text('change permission'),
-                      ),
-                      PopupMenuItem<_UserAction>(
-                        value: _UserAction.remove,
-                        child: Text('remove user'),
-                      ),
-                    ];
-                  },
-                  onSelected: (_UserAction action) {
-                    switch (action) {
-                      case _UserAction.changePassword:
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => _ChangePasswordDialog(
-                            username: user.username,
-                            changePasswordFunction: (username, password) =>
-                                _service.changePassword(username, password),
-                          ),
-                        );
-                        return;
-                      case _UserAction.changePermission:
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => _ChangePermissionDialog(
+        SmartRefresher(
+          enablePullDown: true,
+          controller: _refreshController,
+          header: WaterDropMaterialHeader(backgroundColor: Theme.of(context).primaryColor,),
+          onRefresh: _onRefresh,
+          child: ListView.builder(
+            itemCount: _users?.length ?? 0,
+            itemBuilder: (context, index) {
+              final user = _users[index];
+              return Card(
+                child: ListTile(
+                  title: Text(user.username),
+                  subtitle: Text(user.administrator ? 'administrator' : 'user'),
+                  trailing: PopupMenuButton<_UserAction>(
+                    icon: Icon(Icons.more_vert),
+                    itemBuilder: (context) {
+                      return <PopupMenuEntry<_UserAction>>[
+                        PopupMenuItem<_UserAction>(
+                          value: _UserAction.changePassword,
+                          child: Text('change password'),
+                        ),
+                        PopupMenuItem<_UserAction>(
+                          value: _UserAction.changePermission,
+                          child: Text('change permission'),
+                        ),
+                        PopupMenuItem<_UserAction>(
+                          value: _UserAction.remove,
+                          child: Text('remove user'),
+                        ),
+                      ];
+                    },
+                    onSelected: (_UserAction action) {
+                      switch (action) {
+                        case _UserAction.changePassword:
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => _ChangePasswordDialog(
                               username: user.username,
-                              isAdmin: !user.administrator,
-                              changePermissionFunction:
-                                  (username, isAdmin) async {
-                                await _service.changePermission(
-                                    username, isAdmin);
+                              changePasswordFunction: (username, password) =>
+                                  _service.changePassword(username, password),
+                            ),
+                          );
+                          return;
+                        case _UserAction.changePermission:
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => _ChangePermissionDialog(
+                                username: user.username,
+                                isAdmin: !user.administrator,
+                                changePermissionFunction:
+                                    (username, isAdmin) async {
+                                  await _service.changePermission(
+                                      username, isAdmin);
+                                  setState(() {
+                                    user.administrator = isAdmin;
+                                  });
+                                }),
+                          );
+                          return;
+                        case _UserAction.remove:
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => _DeleteDialog(
+                              username: user.username,
+                              deleteUserFunction: () async {
+                                await _service.removeUser(user.username);
                                 setState(() {
-                                  user.administrator = isAdmin;
+                                  _users.removeAt(index);
                                 });
-                              }),
-                        );
-                        return;
-                      case _UserAction.remove:
-                        showDialog(
-                          context: context,
-                          barrierDismissible: false,
-                          builder: (context) => _DeleteDialog(
-                            username: user.username,
-                            deleteUserFunction: () async {
-                              await _service.removeUser(user.username);
-                              setState(() {
-                                _users.removeAt(index);
-                              });
-                            },
-                          ),
-                        );
-                        return;
-                    }
-                  },
+                              },
+                            ),
+                          );
+                          return;
+                      }
+                    },
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
         Container(
           alignment: Alignment.bottomRight,
@@ -480,7 +492,7 @@ class _ChangePermissionDialog extends StatelessWidget {
     return _OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text(
-          'You are change $username to ${isAdmin ? "administrator" : "user"} !'),
+          'You are changing $username to ${isAdmin ? "administrator" : "user"} !'),
       operationFunction: () => changePermissionFunction(username, isAdmin),
     );
   }
