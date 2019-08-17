@@ -14,7 +14,7 @@ class _UserAdminService {
   static const String _key_administrator = User.key_administrator;
 
   String _generateUrl(String username) =>
-      '$apiBaseUrl/user/$username?token=${UserManager.getInstance().token}';
+      '$apiBaseUrl/users/$username?token=${UserManager.getInstance().token}';
 
   Future<List<User>> fetchUserList() async {
     var res =
@@ -31,6 +31,18 @@ class _UserAdminService {
         body: jsonEncode(
             {_key_password: password, _key_administrator: administrator}));
     if (res.statusCode != 201) throw Exception();
+  }
+
+  Future changeUsername(String oldUsername, String newUsername) async {
+    var res = await post(
+      '$apiBaseUrl/userop/changeusername?token=${UserManager.getInstance().token}',
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'oldUsername': oldUsername,
+        'newUsername': newUsername,
+      }),
+    );
+    if (res.statusCode != 200) throw Exception();
   }
 
   Future changePassword(String username, String newPassword) async {
@@ -65,6 +77,7 @@ class UserAdminPage extends StatefulWidget {
 }
 
 enum _UserAction {
+  changeUsername,
   changePassword,
   changePermission,
   remove,
@@ -99,7 +112,9 @@ class _UserAdminPageState extends State<UserAdminPage> {
         SmartRefresher(
           enablePullDown: true,
           controller: _refreshController,
-          header: WaterDropMaterialHeader(backgroundColor: Theme.of(context).primaryColor,),
+          header: WaterDropMaterialHeader(
+            backgroundColor: Theme.of(context).primaryColor,
+          ),
           onRefresh: _onRefresh,
           child: ListView.builder(
             itemCount: _users?.length ?? 0,
@@ -113,6 +128,10 @@ class _UserAdminPageState extends State<UserAdminPage> {
                     icon: Icon(Icons.more_vert),
                     itemBuilder: (context) {
                       return <PopupMenuEntry<_UserAction>>[
+                        PopupMenuItem<_UserAction>(
+                          value: _UserAction.changeUsername,
+                          child: Text('change username'),
+                        ),
                         PopupMenuItem<_UserAction>(
                           value: _UserAction.changePassword,
                           child: Text('change password'),
@@ -129,6 +148,23 @@ class _UserAdminPageState extends State<UserAdminPage> {
                     },
                     onSelected: (_UserAction action) {
                       switch (action) {
+                        case _UserAction.changeUsername:
+                          showDialog(
+                            context: context,
+                            barrierDismissible: false,
+                            builder: (context) => _ChangeUsernameDialog(
+                              username: user.username,
+                              changeUsernameFunction:
+                                  (oldUsername, newUsername) async {
+                                await _service.changeUsername(
+                                    oldUsername, newUsername);
+                                setState(() {
+                                  user.username = newUsername;
+                                });
+                              },
+                            ),
+                          );
+                          return;
                         case _UserAction.changePassword:
                           showDialog(
                             context: context,
@@ -417,6 +453,58 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
           Text('administrator'),
         ]),
       ],
+    );
+  }
+}
+
+typedef Future ChangeUsernameFunction(String oldUsername, String newUsername);
+
+class _ChangeUsernameDialog extends StatefulWidget {
+  _ChangeUsernameDialog({
+    @required this.username,
+    @required this.changeUsernameFunction,
+    Key key,
+  });
+
+  final ChangeUsernameFunction changeUsernameFunction;
+  final String username;
+
+  @override
+  State<StatefulWidget> createState() {
+    return _ChangeUsernameDialogState();
+  }
+}
+
+class _ChangeUsernameDialogState extends State<_ChangeUsernameDialog> {
+  TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _OperationDialog(
+      title: Text('Dangerous!'),
+      subtitle: Text('You are changing username for ${widget.username}.'),
+      inputContent: <Widget>[
+        TextField(
+          decoration: InputDecoration(
+              border: UnderlineInputBorder(), labelText: 'new username'),
+          controller: _controller,
+        ),
+      ],
+      operationFunction: () {
+        return widget.changeUsernameFunction(widget.username, _controller.text);
+      },
     );
   }
 }
