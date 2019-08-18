@@ -8,18 +8,33 @@ import 'user.dart';
 import 'network.dart';
 
 class _UserAdminService {
-  // TODO: Complete exception messages.
-
   static const String _key_password = User.key_password;
   static const String _key_administrator = User.key_administrator;
 
   String _generateUrl(String username) =>
       '$apiBaseUrl/users/$username?token=${UserManager.getInstance().token}';
 
+  _checkError(Response response, {int successCode = 200}) {
+    if (response.statusCode == successCode) return;
+    var rawBody = jsonDecode(response.body) as Map<String, dynamic>;
+    StringBuffer messageBuilder = StringBuffer();
+    if (rawBody.containsKey('code')) {
+      messageBuilder.writeln('Error code is ${rawBody["code"]}.');
+    }
+    if (rawBody.containsKey('message')) {
+      messageBuilder.writeln('Error message is ${rawBody["message"]}.');
+    }
+    if (messageBuilder.isEmpty) {
+      throw Exception('Unknown error. Response status code is ${response.statusCode}.');
+    } else {
+      throw Exception(messageBuilder.toString());
+    }
+  }
+
   Future<List<User>> fetchUserList() async {
     var res =
         await get('$apiBaseUrl/users?token=${UserManager.getInstance().token}');
-    if (res.statusCode != 200) throw Exception();
+    _checkError(res);
     var rawList = jsonDecode(res.body) as List<dynamic>;
     return rawList.map((raw) => User.fromJson(raw)).toList();
   }
@@ -30,7 +45,7 @@ class _UserAdminService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(
             {_key_password: password, _key_administrator: administrator}));
-    if (res.statusCode != 201) throw Exception();
+    _checkError(res, successCode: 201);
   }
 
   Future changeUsername(String oldUsername, String newUsername) async {
@@ -42,7 +57,7 @@ class _UserAdminService {
         'newUsername': newUsername,
       }),
     );
-    if (res.statusCode != 200) throw Exception();
+    _checkError(res);
   }
 
   Future changePassword(String username, String newPassword) async {
@@ -51,12 +66,12 @@ class _UserAdminService {
         body: jsonEncode({
           _key_password: newPassword,
         }));
-    if (res.statusCode != 200) throw Exception();
+    _checkError(res);
   }
 
   Future removeUser(String username) async {
     var res = await delete(_generateUrl(username));
-    if (res.statusCode != 200) throw Exception();
+    _checkError(res);
   }
 
   Future changePermission(String username, bool administrator) async {
@@ -65,7 +80,7 @@ class _UserAdminService {
         body: jsonEncode({
           _key_administrator: administrator,
         }));
-    if (res.statusCode != 200) throw Exception();
+    _checkError(res);
   }
 }
 
@@ -364,7 +379,7 @@ class _OperationDialogState extends State<_OperationDialog> {
             subtitle,
             Center(
               child: Text(
-                'Error! $_error',
+                'Error!\n$_error',
                 style: Theme.of(context)
                     .textTheme
                     .subhead
