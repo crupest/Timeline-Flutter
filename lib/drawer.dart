@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:timeline/http.dart';
 
-import 'user.dart';
+import 'user_service.dart';
 
 enum DrawerSelectedItem { none, home, administration }
 
@@ -40,8 +42,18 @@ class MyDrawer extends StatelessWidget {
     headerContent = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
+        Expanded(
+          child: ClipOval(
+            child: Container(
+              color: Colors.white,
+              child: CachedNetworkImage(
+                imageUrl:
+                    "$apiBaseUrl/users/${user.username}/avatar?token=${UserManager.getInstance().token}",
+              ),
+            ),
+          ),
+        ),
         Text(user.username),
-        Text('welcome!'),
       ],
     );
 

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
-import 'user.dart';
+import 'user_service.dart';
 import 'http.dart';
 
 class _UserAdminService {
