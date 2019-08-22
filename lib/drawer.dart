@@ -25,36 +25,25 @@ class MyDrawer extends StatelessWidget {
       );
     }
 
-    tiles.add(createItem(DrawerSelectedItem.home, 'Home', '/'));
+    tiles.add(createItem(DrawerSelectedItem.home, 'Home', '/home'));
     tiles.add(Divider());
 
     var user = UserManager.getInstance().currentUser;
 
-    if (user != null && user.administrator) {
+    if (user.administrator) {
       tiles.add(createItem(DrawerSelectedItem.administration, 'Administration',
           '/administration'));
     }
 
     Widget headerContent;
 
-    if (user != null) {
-      headerContent = Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text(user.username),
-          Text('welcome!'),
-        ],
-      );
-    } else {
-      headerContent = Center(
-        child: FlatButton(
-          child: Text('no login, tap to login'),
-          onPressed: () {
-            Navigator.popAndPushNamed(context, '/login');
-          },
-        ),
-      );
-    }
+    headerContent = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Text(user.username),
+        Text('welcome!'),
+      ],
+    );
 
     return Drawer(
       child: Column(

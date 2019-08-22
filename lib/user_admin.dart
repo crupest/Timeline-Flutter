@@ -5,7 +5,7 @@ import 'package:http/http.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'user.dart';
-import 'network.dart';
+import 'http.dart';
 
 class _UserAdminService {
   static const String _key_password = User.key_password;

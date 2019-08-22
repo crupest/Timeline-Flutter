@@ -13,7 +13,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController _usernameController;
   TextEditingController _passwordController;
   bool _isProcessing;
-  dynamic _error;
+  String _error;
 
   @override
   void initState() {
@@ -32,60 +32,88 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> children;
+    List<Widget> children = [];
 
-    if (_isProcessing) {
-      children = [CircularProgressIndicator()];
-    } else {
-      children = [
-        TextField(
-          controller: _usernameController,
-          decoration: InputDecoration(
-            labelText: 'username',
+    children.add(Container(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        children: <Widget>[
+          TextField(
+            controller: _usernameController,
+            decoration: InputDecoration(
+              labelText: 'username',
+            ),
           ),
-        ),
-        TextField(
-          controller: _passwordController,
-          obscureText: true,
-          decoration: InputDecoration(
-            labelText: 'password',
+          TextField(
+            controller: _passwordController,
+            obscureText: true,
+            decoration: InputDecoration(
+              labelText: 'password',
+            ),
+            enabled: !_isProcessing,
           ),
+        ],
+      ),
+    ));
+
+    if (!_isProcessing && _error != null) {
+      children.add(
+        Text(
+          'Login failed.\n' + _error,
+          style: Theme.of(context)
+              .primaryTextTheme
+              .body1
+              .copyWith(color: Colors.redAccent),
         ),
-      ];
-      if (_error != null) {
-        children.add(Text('Login failed. Error: $_error'));
-      }
-      children.add(RaisedButton(
-        child: Text('login'),
-        onPressed: () {
-          setState(() {
-            _isProcessing = true;
-          });
-          UserManager.getInstance()
-              .login(_usernameController.text, _passwordController.text)
-              .then((_) {
-            Navigator.pop(context);
-          }, onError: (error) {
-            setState(() {
-              _isProcessing = false;
-              _error = error;
-            });
-          });
-        },
-      ));
+      );
     }
+
+    children.add(
+      Container(
+        padding: EdgeInsets.all(10),
+        alignment: Alignment.centerRight,
+        child: _isProcessing
+            ? CircularProgressIndicator()
+            : FlatButton(
+                child: Text('login'),
+                onPressed: () {
+                  setState(() {
+                    _isProcessing = true;
+                  });
+                  UserManager.getInstance()
+                      .login(_usernameController.text, _passwordController.text)
+                      .then((_) {
+                    Navigator.popAndPushNamed(context, '/home');
+                  }, onError: (error) {
+                    setState(() {
+                      _isProcessing = false;
+                      _error = error.message;
+                    });
+                  });
+                },
+              ),
+      ),
+    );
+
+    children = [
+      Center(
+        child: Text(
+          'Welcome to Timeline!',
+          style: Theme.of(context)
+              .primaryTextTheme
+              .display1
+              .copyWith(color: Colors.blueAccent),
+        ),
+      ),
+      Image.asset("assets/icon.png"),
+      ...children,
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: Icon(Icons.close),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        title: Text('Login'),
+        title: Text('Timeline'),
       ),
-      body: Column(children: children),
+      body: ListView(children: children),
     );
   }
 }
