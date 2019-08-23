@@ -15,6 +15,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _isProcessing;
   String _error;
 
+  String _usernameError;
+  String _passwordError;
+
   @override
   void initState() {
     super.initState();
@@ -41,16 +44,36 @@ class _LoginPageState extends State<LoginPage> {
           TextField(
             controller: _usernameController,
             decoration: InputDecoration(
-              labelText: 'username',
-            ),
+                labelText: 'username', errorText: _usernameError),
+            onChanged: (value) {
+              if (value.isEmpty && _usernameError == null) {
+                setState(() {
+                  _usernameError = 'Please enter username.';
+                });
+              } else if (value.isNotEmpty && _usernameError != null) {
+                setState(() {
+                  _usernameError = null;
+                });
+              }
+            },
           ),
           TextField(
             controller: _passwordController,
             obscureText: true,
             decoration: InputDecoration(
-              labelText: 'password',
-            ),
+                labelText: 'password', errorText: _passwordError),
             enabled: !_isProcessing,
+            onChanged: (value) {
+              if (value.isEmpty && _passwordError == null) {
+                setState(() {
+                  _passwordError = 'Please enter password.';
+                });
+              } else if (value.isNotEmpty && _passwordError != null) {
+                setState(() {
+                  _passwordError = null;
+                });
+              }
+            },
           ),
         ],
       ),
@@ -59,24 +82,31 @@ class _LoginPageState extends State<LoginPage> {
     if (!_isProcessing && _error != null) {
       children.add(
         Text(
-          'Login failed.\n' + _error,
+          _error,
           style: Theme.of(context)
               .primaryTextTheme
-              .body1
-              .copyWith(color: Colors.redAccent),
+              .title
+              .copyWith(color: Colors.red),
         ),
       );
     }
 
     children.add(
       Container(
-        padding: EdgeInsets.all(10),
+        padding: EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.centerRight,
         child: _isProcessing
             ? CircularProgressIndicator()
             : FlatButton(
                 child: Text('login'),
                 onPressed: () {
+                  if (_usernameError != null || _passwordError != null) {
+                    setState(() {
+                      _error = 'Please fix errors above!';
+                    });
+                    return;
+                  }
+
                   setState(() {
                     _isProcessing = true;
                   });
@@ -105,7 +135,10 @@ class _LoginPageState extends State<LoginPage> {
               .copyWith(color: Colors.blueAccent),
         ),
       ),
-      Image.asset("assets/icon.png"),
+      Image.asset(
+        "assets/icon.png",
+        color: Colors.deepOrange,
+      ),
       ...children,
     ];
 
