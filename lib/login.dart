@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:timeline/http.dart';
 
+import 'i18n.dart';
 import 'user_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -35,52 +37,68 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = TimelineLocalizations.of(context);
+
     List<Widget> children = [];
 
-    children.add(Container(
-      padding: EdgeInsets.all(10),
-      child: Column(
-        children: <Widget>[
-          TextField(
-            controller: _usernameController,
-            decoration: InputDecoration(
-                labelText: 'username', errorText: _usernameError),
-            onChanged: (value) {
-              if (value.isEmpty && _usernameError == null) {
-                setState(() {
-                  _usernameError = 'Please enter username.';
-                });
-              } else if (value.isNotEmpty && _usernameError != null) {
-                setState(() {
-                  _usernameError = null;
-                });
-              }
-            },
+    _validate(
+        String value, dynamic error, void errorSetter(), void errorClearer()) {
+      if (value.isEmpty && error == null) {
+        setState(() {
+          errorSetter();
+        });
+      } else if (value.isNotEmpty && error != null) {
+        setState(() {
+          errorClearer();
+        });
+      }
+    }
+
+    validateUsername(String value) {
+      _validate(value, _usernameError, () {
+        _usernameError = localizations.enterUsername;
+      }, () {
+        _usernameError = null;
+      });
+    }
+
+    validatePassword(String value) {
+      _validate(value, _passwordError, () {
+        _passwordError = localizations.enterPassword;
+      }, () {
+        _passwordError = null;
+      });
+    }
+
+    List<Widget> formChildren = [];
+
+    formChildren.addAll([
+      TextField(
+          controller: _usernameController,
+          decoration: InputDecoration(
+            labelText: localizations.username,
+            errorText: _usernameError,
+            isDense: true,
           ),
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: InputDecoration(
-                labelText: 'password', errorText: _passwordError),
-            enabled: !_isProcessing,
-            onChanged: (value) {
-              if (value.isEmpty && _passwordError == null) {
-                setState(() {
-                  _passwordError = 'Please enter password.';
-                });
-              } else if (value.isNotEmpty && _passwordError != null) {
-                setState(() {
-                  _passwordError = null;
-                });
-              }
-            },
-          ),
-        ],
+          onChanged: validateUsername),
+      TextField(
+        controller: _passwordController,
+        obscureText: true,
+        decoration: InputDecoration(
+          labelText: localizations.password,
+          errorText: _passwordError,
+          isDense: true,
+        ),
+        enabled: !_isProcessing,
+        onChanged: validatePassword,
       ),
-    ));
+      SizedBox(
+        height: 10,
+      ),
+    ]);
 
     if (!_isProcessing && _error != null) {
-      children.add(
+      formChildren.add(
         Text(
           _error,
           style: Theme.of(context)
@@ -91,18 +109,21 @@ class _LoginPageState extends State<LoginPage> {
       );
     }
 
-    children.add(
+    formChildren.add(
       Container(
         padding: EdgeInsets.symmetric(horizontal: 10),
         alignment: Alignment.centerRight,
         child: _isProcessing
             ? CircularProgressIndicator()
             : FlatButton(
-                child: Text('login'),
+                child: Text(localizations.login),
                 onPressed: () {
+                  validateUsername(_usernameController.text);
+                  validatePassword(_passwordController.text);
+
                   if (_usernameError != null || _passwordError != null) {
                     setState(() {
-                      _error = 'Please fix errors above!';
+                      _error = localizations.fixErrorAbove;
                     });
                     return;
                   }
@@ -115,9 +136,15 @@ class _LoginPageState extends State<LoginPage> {
                       .then((_) {
                     Navigator.popAndPushNamed(context, '/home');
                   }, onError: (error) {
+                    String message;
+                    if (error is HttpCodeException && error.code == -1001) {
+                      message = localizations.badCredential;
+                    } else {
+                      message = error.message;
+                    }
                     setState(() {
                       _isProcessing = false;
-                      _error = error.message;
+                      _error = message;
                     });
                   });
                 },
@@ -125,10 +152,17 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
 
+    children.add(Container(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        children: formChildren,
+      ),
+    ));
+
     children = [
       Center(
         child: Text(
-          'Welcome to Timeline!',
+          localizations.welcome,
           style: Theme.of(context)
               .primaryTextTheme
               .display1

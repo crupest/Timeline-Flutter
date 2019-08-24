@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:timeline/i18n.dart';
 
 import 'administration.dart';
 import 'home.dart';
@@ -27,6 +29,15 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Timeline',
+      localizationsDelegates: [
+        TimelineLocalizationsDelegate(),
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+      ],
+      supportedLocales: [
+        const Locale('en'),
+        const Locale.fromSubtags(languageCode: 'zh', scriptCode: 'Hans'),
+      ],
       theme: ThemeData(
         // This is the theme of your application.
         //
