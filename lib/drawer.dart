@@ -34,7 +34,7 @@ class MyDrawer extends StatelessWidget {
 
     if (user.administrator) {
       tiles.add(createItem(DrawerSelectedItem.administration, 'Administration',
-          '/administration'));
+          '/admin'));
     }
 
     Widget headerContent;

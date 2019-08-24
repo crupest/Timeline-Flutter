@@ -34,6 +34,8 @@ dependencies:
 
   http: ^0.12.0+2
 
+  fluro: "^1.5.1"
+  
   pull_to_refresh: ^1.5.2
 
   cached_network_image: ^1.1.1

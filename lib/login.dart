@@ -137,7 +137,8 @@ class _LoginPageState extends State<LoginPage> {
                     Navigator.popAndPushNamed(context, '/home');
                   }, onError: (error) {
                     String message;
-                    if (error is HttpCodeException && error.code == -1001) {
+                    if (error is HttpCodeException &&
+                        error.errorCode == -1001) {
                       message = localizations.badCredential;
                     } else {
                       message = error.message;
