@@ -97,10 +97,14 @@ class OperationDialogState extends State<OperationDialog> {
           mainAxisAlignment: MainAxisAlignment.end,
           children: <Widget>[
             FlatButton(
-              onPressed: () {
-                Navigator.pop(context, true);
-                if (widget.onOk != null) widget.onOk();
-              },
+              onPressed: _error != null
+                  ? () {
+                      Navigator.pop(context, false);
+                    }
+                  : () {
+                      Navigator.pop(context, true);
+                      if (widget.onOk != null) widget.onOk();
+                    },
               child: Text(
                 'Ok',
               ),
