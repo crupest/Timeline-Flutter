@@ -340,24 +340,37 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
           IconButton(
             icon: Icon(Icons.check),
             onPressed: () {
-              final details = UserDetails(
-                nickname: _nicknameController.text,
-                qq: _qqController.text,
-                email: _emailController.text,
-                phoneNumber: _phoneNumberController.text,
-                description: _descriptionController.text,
-              );
               showDialog(
                 context: context,
                 builder: (context) {
+                  //TODO: error message
                   return OperationDialog(
                     title: Text('Confirm!'), //TODO: translation.
                     subtitle: Text('Are you sure to change your informantion?'),
                     operationFunction: () {
-                      return updateUserDetail(widget.username, details);
+                      return updateUserDetail(
+                        widget.username,
+                        UserDetails(
+                          nickname: _nicknameController.text,
+                          qq: _qqController.text,
+                          email: _emailController.text,
+                          phoneNumber: _phoneNumberController.text,
+                          description: _descriptionController.text,
+                        ),
+                      );
                     },
                     onOk: () {
-                      Navigator.of(context).pop(details);
+                      String coerce(String raw) => raw.isEmpty ? null : raw;
+
+                      Navigator.of(context).pop(
+                        UserDetails(
+                          nickname: coerce(_nicknameController.text),
+                          qq: coerce(_qqController.text),
+                          email: coerce(_emailController.text),
+                          phoneNumber: coerce(_phoneNumberController.text),
+                          description: coerce(_descriptionController.text),
+                        ),
+                      );
                     },
                   );
                 },
