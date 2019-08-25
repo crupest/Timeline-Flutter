@@ -5,6 +5,7 @@ import 'package:http/http.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'user_service.dart';
+import 'operation_dialog.dart';
 import 'http.dart';
 
 class _UserAdminService {
@@ -139,7 +140,8 @@ class _UserAdminPageState extends State<UserAdminPage> {
               return Card(
                 child: ListTile(
                   onTap: () {
-                    Navigator.of(context).pushNamed('users/${user.username}/details');
+                    Navigator.of(context)
+                        .pushNamed('users/${user.username}/details');
                   },
                   title: Text(user.username),
                   subtitle: Text(user.administrator ? 'administrator' : 'user'),
@@ -263,150 +265,6 @@ class _UserAdminPageState extends State<UserAdminPage> {
   }
 }
 
-enum _OperationStep { input, progress, done }
-typedef Future _OperationFunction();
-
-class _OperationDialog extends StatefulWidget {
-  final Widget title;
-  final Widget subtitle;
-
-  final List<Widget> inputContent;
-
-  final _OperationFunction operationFunction;
-
-  _OperationDialog({
-    @required this.title,
-    @required this.subtitle,
-    this.inputContent = const [],
-    @required this.operationFunction,
-    Key key,
-  })  : assert(operationFunction != null),
-        super(key: key);
-
-  @override
-  _OperationDialogState createState() => _OperationDialogState();
-}
-
-class _OperationDialogState extends State<_OperationDialog> {
-  _OperationStep _step;
-  dynamic _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _step = _OperationStep.input;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var subtitle = widget.subtitle;
-
-    List<Widget> content;
-
-    switch (_step) {
-      case _OperationStep.input:
-        content = [
-          subtitle,
-          ...widget.inputContent,
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: <Widget>[
-              FlatButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Text('Cancel'),
-              ),
-              FlatButton(
-                onPressed: () {
-                  setState(() {
-                    _step = _OperationStep.progress;
-                  });
-                  widget.operationFunction().then((_) {
-                    setState(() {
-                      _step = _OperationStep.done;
-                    });
-                  }, onError: (error) {
-                    setState(() {
-                      _step = _OperationStep.done;
-                      _error = error;
-                    });
-                  });
-                },
-                child: Text('Confirm'),
-              ),
-            ],
-          )
-        ];
-        break;
-      case _OperationStep.progress:
-        content = [
-          subtitle,
-          Container(
-            width: 40,
-            height: 40,
-            alignment: Alignment.center,
-            child: CircularProgressIndicator(),
-          ),
-        ];
-        break;
-      case _OperationStep.done:
-        var buttonBar = Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            FlatButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text(
-                'Ok',
-              ),
-            )
-          ],
-        );
-        if (_error == null) {
-          content = [
-            subtitle,
-            Center(
-              child: Text(
-                'Success!',
-                style: Theme.of(context)
-                    .textTheme
-                    .subhead
-                    .copyWith(color: Colors.green),
-              ),
-            ),
-            buttonBar
-          ];
-        } else {
-          content = [
-            subtitle,
-            Center(
-              child: Text(
-                'Error!\n$_error',
-                style: Theme.of(context)
-                    .textTheme
-                    .subhead
-                    .copyWith(color: Colors.red),
-              ),
-            ),
-            buttonBar
-          ];
-        }
-        break;
-    }
-
-    return AlertDialog(
-      title: widget.title,
-      content: IntrinsicHeight(
-        child: Column(
-          children: content,
-        ),
-      ),
-    );
-  }
-}
-
 typedef Future _CreateUserFunction(
     String username, String password, bool isAdmin);
 
@@ -444,7 +302,7 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _OperationDialog(
+    return OperationDialog(
       title: Text('Create!'),
       subtitle: Text('You are creating a user.'),
       operationFunction: () => widget.createUserFunction(
@@ -511,7 +369,7 @@ class _ChangeUsernameDialogState extends State<_ChangeUsernameDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _OperationDialog(
+    return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text('You are changing username for ${widget.username}.'),
       inputContent: <Widget>[
@@ -563,7 +421,7 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return _OperationDialog(
+    return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text('You are changing password for ${widget.username}.'),
       inputContent: <Widget>[
@@ -596,7 +454,7 @@ class _ChangePermissionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _OperationDialog(
+    return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text(
           'You are changing $username to ${isAdmin ? "administrator" : "user"} !'),
@@ -613,11 +471,11 @@ class _DeleteDialog extends StatelessWidget {
   }) : super(key: key);
 
   final String username;
-  final _OperationFunction deleteUserFunction;
+  final OperationFunction deleteUserFunction;
 
   @override
   Widget build(BuildContext context) {
-    return _OperationDialog(
+    return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text('You are deleting $username !'),
       operationFunction: deleteUserFunction,

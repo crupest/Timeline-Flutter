@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart';
 
 import 'avatar.dart';
+import 'operation_dialog.dart';
 import 'user_service.dart';
 import 'drawer.dart';
 import 'i18n.dart';
@@ -127,7 +128,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                             placeHoler,
                             style: Theme.of(context)
                                 .primaryTextTheme
-                                .title
+                                .body1
                                 .copyWith(color: Colors.grey),
                           )),
               ],
@@ -174,14 +175,199 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
 
+    final user = UserManager.getInstance().currentUser;
+    List<Widget> actions;
+    if (user.username == username || user.administrator) {
+      actions = [
+        IconButton(
+          icon: Icon(Icons.edit),
+          onPressed: () {
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) {
+              return _UserDetailEditPage(
+                  username: username, oldDetails: _details);
+            })).then((value) {
+              if (value != null)
+                setState(() {
+                  _details = value;
+                });
+            });
+          },
+        )
+      ];
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Timeline'),
+        actions: actions,
       ),
       body: content,
       drawer: MyDrawer(
         selectedItem: DrawerSelectedItem.none,
       ),
+    );
+  }
+}
+
+Future updateUserDetail(String username, UserDetails details) async {
+  assert(username != null);
+  assert(username.isNotEmpty);
+  final res = await patch(
+      '$apiBaseUrl/users/$username/details?token=${UserManager.getInstance().token}',
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        _nicknameKey: details.nickname,
+        _qqKey: details.qq,
+        _emailKey: details.email,
+        _phoneNumberKey: details.phoneNumber,
+        _descriptionKey: details.description,
+      }));
+  checkError(res);
+}
+
+class _UserDetailEditPage extends StatefulWidget {
+  _UserDetailEditPage({@required this.username, @required this.oldDetails})
+      : assert(username != null),
+        assert(username.isNotEmpty),
+        assert(oldDetails != null);
+
+  final String username;
+  final UserDetails oldDetails;
+
+  @override
+  _UserDetailEditPageState createState() => _UserDetailEditPageState();
+}
+
+class _UserDetailEditPageState extends State<_UserDetailEditPage> {
+  final _nicknameController = TextEditingController();
+  final _qqController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _phoneNumberController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    final oldDetails = widget.oldDetails;
+
+    String coerce(String raw) => raw == null ? '' : raw;
+    _nicknameController.text = coerce(oldDetails.nickname);
+    _qqController.text = coerce(oldDetails.qq);
+    _emailController.text = coerce(oldDetails.email);
+    _phoneNumberController.text = coerce(oldDetails.phoneNumber);
+    _descriptionController.text = coerce(oldDetails.description);
+  }
+
+  @override
+  void dispose() {
+    _nicknameController.dispose();
+    _qqController.dispose();
+    _emailController.dispose();
+    _phoneNumberController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = TimelineLocalizations.of(context);
+
+    Widget content = Container();
+
+    Widget createField(
+      String name,
+      TextEditingController controller, {
+      bool outlineBorder = false,
+      bool expand = false,
+    }) {
+      return Container(
+        padding: EdgeInsets.all(5),
+        child: TextField(
+          controller: controller,
+          maxLines: expand ? null : 1,
+          expands: expand,
+          textAlignVertical: expand ? TextAlignVertical.top : null,
+          decoration: InputDecoration(
+            labelText: name,
+            border: outlineBorder ? OutlineInputBorder() : null,
+          ),
+        ),
+      );
+    }
+
+    content = Column(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.all(5),
+          child: Row(
+            children: <Widget>[
+              Text(
+                localizations.username,
+                style: Theme.of(context).primaryTextTheme.body1.copyWith(
+                      color: Colors.blue,
+                    ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(left: 6),
+                child: Text(
+                  widget.username,
+                  style: Theme.of(context)
+                      .primaryTextTheme
+                      .title
+                      .copyWith(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        ),
+        createField(localizations.nickname, _nicknameController),
+        createField(localizations.qq, _qqController),
+        createField(localizations.email, _emailController),
+        createField(localizations.phoneNumber, _phoneNumberController),
+        Expanded(
+          child: createField(
+              localizations.userDescription, _descriptionController,
+              outlineBorder: true, expand: true),
+        ),
+      ],
+    );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Timeline'),
+        actions: <Widget>[
+          IconButton(
+            icon: Icon(Icons.check),
+            onPressed: () {
+              final details = UserDetails(
+                nickname: _nicknameController.text,
+                qq: _qqController.text,
+                email: _emailController.text,
+                phoneNumber: _phoneNumberController.text,
+                description: _descriptionController.text,
+              );
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return OperationDialog(
+                    title: Text('Confirm!'), //TODO: translation.
+                    subtitle: Text('Are you sure to change your informantion?'),
+                    operationFunction: () {
+                      return updateUserDetail(widget.username, details);
+                    },
+                    onOk: () {
+                      Navigator.of(context).pop(details);
+                    },
+                  );
+                },
+                barrierDismissible: false,
+              );
+            },
+          )
+        ],
+      ),
+      body: content,
     );
   }
 }
