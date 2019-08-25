@@ -1,16 +1,19 @@
+import 'package:fluro/fluro.dart';
 import 'package:flutter/material.dart';
 
+import 'route.dart';
 import 'user_service.dart';
 
 class StartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     UserManager.getInstance().checkLastLogin().then((user) {
-      var navigator = Navigator.of(context);
       if (user != null)
-        navigator.pushNamedAndRemoveUntil('/home', (_) => false);
+        router.navigateTo(context, '/home',
+            replace: true, transition: TransitionType.fadeIn);
       else
-        navigator.pushNamedAndRemoveUntil('/login', (_) => false);
+        router.navigateTo(context, '/login',
+            replace: true, transition: TransitionType.fadeIn);
     });
 
     return Scaffold(

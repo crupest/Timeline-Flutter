@@ -4,23 +4,50 @@ import 'package:timeline/user_service.dart';
 
 import 'http.dart';
 
+String _getAvatarUrl(String username) {
+  assert(username != null);
+  assert(username.isNotEmpty);
+  return "$apiBaseUrl/users/$username/avatar?token=${UserManager.getInstance().token}";
+}
+
+ImageProvider avatarImageProvider(String username) {
+  assert(username != null);
+  assert(username.isNotEmpty);
+  return CachedNetworkImageProvider(_getAvatarUrl(username));
+}
+
 class Avatar extends StatelessWidget {
-  Avatar(this.username)
+  Avatar(this.username, {this.onPressed})
       : assert(username != null),
         assert(username.isNotEmpty);
 
   final String username;
+  final void Function() onPressed;
 
   @override
   Widget build(BuildContext context) {
-    return ClipOval(
-      child: Container(
-        color: Colors.white,
-        child: CachedNetworkImage(
-          imageUrl:
-              "$apiBaseUrl/users/$username/avatar?token=${UserManager.getInstance().token}",
-        ),
-      ),
+    Widget content = CachedNetworkImage(
+      imageUrl: _getAvatarUrl(username),
     );
+
+    if (onPressed == null) {
+      content = ClipOval(
+        child: Container(
+          color: Colors.white,
+          child: content,
+        ),
+      );
+    } else {
+      content = Material(
+        color: Colors.white,
+        shape: CircleBorder(),
+        child: InkWell(
+          onTap: onPressed,
+          child: content,
+        ),
+      );
+    }
+
+    return content;
   }
 }

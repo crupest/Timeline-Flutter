@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:timeline/view_photo.dart';
 
 import 'avatar.dart';
 import 'operation_dialog.dart';
@@ -145,7 +146,12 @@ class _UserDetailPageState extends State<UserDetailPage> {
                   flex: 2,
                   child: Padding(
                     padding: EdgeInsets.all(8),
-                    child: Avatar(username),
+                    child: Avatar(
+                      username,
+                      onPressed: () {
+                        viewPhoto(context, avatarImageProvider(username));
+                      },
+                    ),
                   ),
                 ),
                 Expanded(

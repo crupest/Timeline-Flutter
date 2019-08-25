@@ -134,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                   UserManager.getInstance()
                       .login(_usernameController.text, _passwordController.text)
                       .then((_) {
-                    Navigator.popAndPushNamed(context, '/home');
+                    Navigator.pushReplacementNamed(context, '/home');
                   }, onError: (error) {
                     String message;
                     if (error is HttpCodeException &&
