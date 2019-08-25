@@ -15,6 +15,13 @@ Map<String, String> _createEn() {
     "login": "login",
     "fixErrorAbove": "Please fix errors above!",
     "badCredential": "Username or password is wrong.",
+    "nickname": "nickname",
+    "qq": "QQ",
+    "email": "email",
+    "phoneNumber": "phone number",
+    "userDescription": "description",
+    "notSet": "not set",
+    "noUserDescriptionPlaceholder": "This person has not set a description.",
   };
 }
 
@@ -27,7 +34,14 @@ Map<String, String> _createZh() {
     "enterPassword": "请输入密码。",
     "login": "登录",
     "fixErrorAbove": "请修复上面的错误！",
-    "badCredential": "用户名或密码错误。"
+    "badCredential": "用户名或密码错误。",
+    "nickname": "昵称",
+    "qq": "QQ",
+    "email": "电子邮箱",
+    "phoneNumber": "电话号码",
+    "userDescription": "个人说明",
+    "notSet": "未设置",
+    "noUserDescriptionPlaceholder": "这个人懒到没有设置个人说明。",
   };
 }
 
@@ -81,6 +95,26 @@ class TimelineLocalizations {
   String get badCredential {
     return _map['badCredential'];
   }
+
+  String get nickname {
+    return _map['nickname'];
+  }
+
+  String get qq {
+    return _map['qq'];
+  }
+
+  String get email {
+    return _map['email'];
+  }
+
+  String get phoneNumber => _map['phoneNumber'];
+
+  String get userDescription => _map['userDescription'];
+
+  String get notSet => _map['notSet'];
+
+  String get noUserDescriptionPlaceholder => _map['noUserDescriptionPlaceholder'];
 }
 
 class TimelineLocalizationsDelegate

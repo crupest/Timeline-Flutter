@@ -25,7 +25,8 @@ class _UserAdminService {
       messageBuilder.writeln('Error message is ${rawBody["message"]}.');
     }
     if (messageBuilder.isEmpty) {
-      throw Exception('Unknown error. Response status code is ${response.statusCode}.');
+      throw Exception(
+          'Unknown error. Response status code is ${response.statusCode}.');
     } else {
       throw Exception(messageBuilder.toString());
     }
@@ -137,6 +138,9 @@ class _UserAdminPageState extends State<UserAdminPage> {
               final user = _users[index];
               return Card(
                 child: ListTile(
+                  onTap: () {
+                    Navigator.of(context).pushNamed('users/${user.username}/details');
+                  },
                   title: Text(user.username),
                   subtitle: Text(user.administrator ? 'administrator' : 'user'),
                   trailing: PopupMenuButton<_UserAction>(
