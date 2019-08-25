@@ -42,9 +42,13 @@ class HttpCodeException extends HttpException {
 checkError(Response response, {int successCode = 200}) {
   if (response.statusCode == successCode) return;
 
-  var rawBody = jsonDecode(response.body) as Map<String, dynamic>;
-  int code = rawBody["code"];
-  String message = rawBody["message"];
+  int code;
+  String message;
+  try {
+    var rawBody = jsonDecode(response.body) as Map<String, dynamic>;
+    code = rawBody["code"];
+    message = rawBody["message"];
+  } catch (_) {}
   if (code != null) {
     throw HttpCodeException(response.statusCode, code, message: message);
   } else {
