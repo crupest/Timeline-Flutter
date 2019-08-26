@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:timeline/view_photo.dart';
 
 import 'avatar.dart';
@@ -49,6 +51,32 @@ Future<UserDetails> fetchUserDetail(String username) async {
   );
 }
 
+String _guessMimeType(String path) {
+  final reg = RegExp(r'\.\w*$');
+  final extension = reg.stringMatch(path).substring(1);
+  if (extension == 'png') return 'image/png';
+  if (extension == 'jpg' || extension == 'jpeg') return 'image/jpeg';
+  if (extension == 'gif') return 'image/gif';
+  if (extension == 'webp') return 'image/webp';
+  return null;
+}
+
+Future putUserAvatar(String username, String mimeType, List<int> data) async {
+  assert(username != null);
+  assert(username.isNotEmpty);
+  assert(mimeType != null);
+  assert(mimeType.isNotEmpty);
+
+  final res = await put(
+    '$apiBaseUrl/users/$username/avatar?token=${UserManager.getInstance().token}',
+    headers: {
+      'Content-Type': mimeType,
+    },
+    body: data,
+  );
+  checkError(res);
+}
+
 class UserDetailPage extends StatefulWidget {
   UserDetailPage({@required this.username, Key key})
       : assert(username != null),
@@ -88,6 +116,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
   @override
   Widget build(BuildContext context) {
     final localizations = TimelineLocalizations.of(context);
+
+    final user = UserManager.getInstance().currentUser;
+    final editable = user.username == username || user.administrator;
 
     Widget content;
 
@@ -137,25 +168,90 @@ class _UserDetailPageState extends State<UserDetailPage> {
           );
         }
 
+        Widget avatarArea = Padding(
+          padding: EdgeInsets.fromLTRB(5, 5, 30, 5),
+          child: Avatar(
+            username,
+            onPressed: () {
+              viewPhoto(context, avatarImageProvider(username));
+            },
+          ),
+        );
+
+        if (editable) {
+          avatarArea = Stack(
+            alignment: Alignment.bottomRight,
+            children: <Widget>[
+              avatarArea,
+              Container(
+                alignment: Alignment.bottomRight,
+                child: IconButton(
+                  icon: Icon(Icons.edit),
+                  onPressed: () async {
+                    final image =
+                        await MultiImagePicker.pickImages(maxImages: 1);
+                    final path = await image.first.filePath;
+
+                    final croppedImage = await ImageCropper.cropImage(
+                      sourcePath: path,
+                      ratioX: 1.0,
+                      ratioY: 1.0,
+                    );
+
+                    final mimeType = _guessMimeType(croppedImage.path);
+                    if (mimeType == null) {
+                      showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: Text('Error!'),
+                              content: Text(
+                                  'Failed to guess the format of the image.'),
+                              actions: <Widget>[
+                                FlatButton(
+                                  child: Text('OK'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                )
+                              ],
+                            );
+                          });
+                      return;
+                    }
+
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return OperationDialog(
+                          title: Text('Confirm!'),
+                          subtitle: Text('You are uploading a new avatar.'),
+                          operationFunction: () async {
+                            await putUserAvatar(username, mimeType,
+                                await croppedImage.readAsBytes());
+                          },
+                        );
+                      },
+                      barrierDismissible: false,
+                    );
+                  },
+                ),
+              ),
+            ],
+          );
+        }
+
         content = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Row(
               children: <Widget>[
                 Expanded(
-                  flex: 2,
-                  child: Padding(
-                    padding: EdgeInsets.all(8),
-                    child: Avatar(
-                      username,
-                      onPressed: () {
-                        viewPhoto(context, avatarImageProvider(username));
-                      },
-                    ),
-                  ),
+                  flex: 4,
+                  child: avatarArea,
                 ),
                 Expanded(
-                  flex: 3,
+                  flex: 5,
                   child: Center(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,9 +277,8 @@ class _UserDetailPageState extends State<UserDetailPage> {
       }
     }
 
-    final user = UserManager.getInstance().currentUser;
     List<Widget> actions;
-    if (user.username == username || user.administrator) {
+    if (editable) {
       actions = [
         IconButton(
           icon: Icon(Icons.edit),

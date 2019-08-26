@@ -41,6 +41,7 @@ class Avatar extends StatelessWidget {
       content = Material(
         color: Colors.white,
         shape: CircleBorder(),
+        clipBehavior: Clip.antiAlias,
         child: InkWell(
           onTap: onPressed,
           child: content,
