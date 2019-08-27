@@ -103,6 +103,15 @@ class UserManager {
     return user;
   }
 
+  Future logout() async {
+    if (currentUser == null)
+      throw Exception("You can't logout because you haven't login.");
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    sharedPreferences.remove(tokenPreferenceKey);
+    _token = null;
+    _user.add(null);
+  }
+
   dispose() {
     _user.close();
   }

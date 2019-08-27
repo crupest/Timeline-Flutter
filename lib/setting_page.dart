@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:timeline/operation_dialog.dart';
+import 'package:timeline/user_service.dart';
 
 class _SettingHeader extends StatelessWidget {
   _SettingHeader({@required this.title}) : assert(title != null);
@@ -85,7 +87,23 @@ class SettingsPage extends StatelessWidget {
               ),
               _SettingItem(
                 title: Text('Logout current account.'),
-                onTap: () {},
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return OperationDialog(
+                        title: Text('Confirm'),
+                        subtitle: Text('Are you sure you want to logout?'),
+                        operationFunction: () async {
+                          await UserManager.getInstance().logout();
+                          Navigator.of(context)
+                              .pushNamedAndRemoveUntil('/login', (_) => false);
+                        },
+                      );
+                    },
+                    barrierDismissible: false,
+                  );
+                },
                 isDangerous: true,
               ),
               Divider(
