@@ -1,7 +1,6 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:timeline/setting_page.dart';
 
 @immutable
 class OperationDialogTranslation {
@@ -90,12 +89,14 @@ class Translation {
     @required this.drawer,
     @required this.loginPage,
     @required this.userDetail,
+    @required this.settingsPage,
   });
 
   final OperationDialogTranslation operationDialog;
   final DrawerTranslation drawer;
   final LoginPageTranslation loginPage;
   final UserDetailTranslation userDetail;
+  final SettingsPageTranslation settingsPage;
 }
 
 Translation _createEnglishTranslation() {
@@ -135,6 +136,12 @@ Translation _createEnglishTranslation() {
       description: 'description',
       notSet: 'not set',
       noDescriptionPlaceholder: 'This person has not set a description.',
+    ),
+    settingsPage: SettingsPageTranslation(
+      headerAccount: 'Account',
+      itemLogout: 'Logout current account.',
+      itemChangePassword: 'Change password.',
+      messageConfirmLogout: 'Are you sure to logout current account?',
     ),
   );
 }
@@ -176,6 +183,12 @@ Translation _createChineseTranslation() {
       description: '个人说明',
       notSet: '未设置',
       noDescriptionPlaceholder: '这个人懒到没有设置个人说明。',
+    ),
+    settingsPage: SettingsPageTranslation(
+      headerAccount: '账号',
+      itemLogout: '退出当前账号。',
+      itemChangePassword: '修改密码。',
+      messageConfirmLogout: '您确定要退出当前账号吗？',
     ),
   );
 }

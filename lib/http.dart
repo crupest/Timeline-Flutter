@@ -50,7 +50,7 @@ checkError(Response response, {int successCode = 200}) {
     message = rawBody["message"];
   } catch (_) {}
   if (code != null) {
-    throw HttpCodeException(response.statusCode, code, message: message);
+    throw HttpCodeException(code, response.statusCode, message: message);
   } else {
     throw HttpException(response.statusCode, message: message);
   }

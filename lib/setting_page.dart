@@ -1,6 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:timeline/operation_dialog.dart';
-import 'package:timeline/user_service.dart';
+
+import 'i18n.dart';
+import 'operation_dialog.dart';
+import 'user_service.dart';
+
+@immutable
+class SettingsPageTranslation {
+  SettingsPageTranslation({
+    @required this.headerAccount,
+    @required this.itemLogout,
+    @required this.itemChangePassword,
+    @required this.messageConfirmLogout,
+  });
+
+  final String headerAccount;
+
+  final String itemLogout;
+  final String itemChangePassword;
+
+  final String messageConfirmLogout;
+}
 
 class _SettingHeader extends StatelessWidget {
   _SettingHeader({@required this.title}) : assert(title != null);
@@ -63,6 +82,8 @@ class _SettingItem extends StatelessWidget {
 class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final translation = TimelineLocalizations.of(context).settingsPage;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Timeline'),
@@ -73,27 +94,29 @@ class SettingsPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               _SettingHeader(
-                title: Text('Account'),
+                title: Text(translation.headerAccount),
               ),
               Divider(
                 height: 1,
               ),
               _SettingItem(
-                title: Text('Change password.'),
+                title: Text(translation.itemChangePassword),
                 onTap: () {},
               ),
               Divider(
                 height: 1,
               ),
               _SettingItem(
-                title: Text('Logout current account.'),
+                title: Text(translation.itemLogout),
                 onTap: () {
                   showDialog(
                     context: context,
                     builder: (context) {
-                      return OperationDialog(
-                        title: Text('Confirm'),
-                        subtitle: Text('Are you sure you want to logout?'),
+                      return OperationDialog.confirm(
+                        context,
+                        subtitle: Text(TimelineLocalizations.of(context)
+                            .settingsPage
+                            .messageConfirmLogout),
                         operationFunction: () async {
                           await UserManager().logout();
                           Navigator.of(context)

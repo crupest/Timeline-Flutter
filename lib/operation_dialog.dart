@@ -170,34 +170,40 @@ class OperationDialogState extends State<OperationDialog> {
       case OperationStep.input:
         final inputContent = widget.inputContent;
         if (inputContent != null) content.add(inputContent);
-        content.add(Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: <Widget>[
-            FlatButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(translation.cancel),
+        content.add(
+          Padding(
+            padding: EdgeInsets.only(top: 3),
+            child:
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: <Widget>[
+                FlatButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text(translation.cancel),
+                ),
+                FlatButton(
+                  onPressed: () {
+                    setState(() {
+                      _step = OperationStep.progress;
+                    });
+                    widget.operationFunction().then((value) {
+                      _resultObject = value;
+                      setState(() {
+                        _step = OperationStep.success;
+                      });
+                    }, onError: (error) {
+                      _resultObject = error;
+                      setState(() {
+                        _step = OperationStep.error;
+                      });
+                    });
+                  },
+                  child: Text(translation.confirm),
+                ),
+              ],
             ),
-            FlatButton(
-              onPressed: () {
-                setState(() {
-                  _step = OperationStep.progress;
-                });
-                widget.operationFunction().then((value) {
-                  _resultObject = value;
-                  setState(() {
-                    _step = OperationStep.success;
-                  });
-                }, onError: (error) {
-                  _resultObject = error;
-                  setState(() {
-                    _step = OperationStep.error;
-                  });
-                });
-              },
-              child: Text(translation.confirm),
-            ),
-          ],
-        ));
+          ),
+        );
         break;
       case OperationStep.progress:
         content.add(
@@ -253,6 +259,8 @@ class OperationDialogState extends State<OperationDialog> {
 
     return AlertDialog(
       title: widget.title,
+      titlePadding: EdgeInsets.fromLTRB(20, 20, 20, 5),
+      contentPadding: EdgeInsets.fromLTRB(20, 5, 20, 20),
       content: IntrinsicHeight(
         child: Column(
           children: content,
