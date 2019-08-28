@@ -37,7 +37,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = TimelineLocalizations.of(context);
+    final translation = TimelineLocalizations.of(context).loginPage;
 
     List<Widget> children = [];
 
@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
 
     validateUsername(String value) {
       _validate(value, _usernameError, () {
-        _usernameError = localizations.enterUsername;
+        _usernameError = translation.errorEnterUsername;
       }, () {
         _usernameError = null;
       });
@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
 
     validatePassword(String value) {
       _validate(value, _passwordError, () {
-        _passwordError = localizations.enterPassword;
+        _passwordError = translation.errorEnterPassword;
       }, () {
         _passwordError = null;
       });
@@ -76,7 +76,7 @@ class _LoginPageState extends State<LoginPage> {
       TextField(
           controller: _usernameController,
           decoration: InputDecoration(
-            labelText: localizations.username,
+            labelText: translation.username,
             errorText: _usernameError,
             isDense: true,
           ),
@@ -85,7 +85,7 @@ class _LoginPageState extends State<LoginPage> {
         controller: _passwordController,
         obscureText: true,
         decoration: InputDecoration(
-          labelText: localizations.password,
+          labelText: translation.password,
           errorText: _passwordError,
           isDense: true,
         ),
@@ -116,14 +116,14 @@ class _LoginPageState extends State<LoginPage> {
         child: _isProcessing
             ? CircularProgressIndicator()
             : FlatButton(
-                child: Text(localizations.login),
+                child: Text(translation.login),
                 onPressed: () {
                   validateUsername(_usernameController.text);
                   validatePassword(_passwordController.text);
 
                   if (_usernameError != null || _passwordError != null) {
                     setState(() {
-                      _error = localizations.fixErrorAbove;
+                      _error = translation.errorFixErrorAbove;
                     });
                     return;
                   }
@@ -140,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
                     if (error is HttpCodeException &&
                         (error.errorCode == -1001 ||
                             error.errorCode == -1002)) {
-                      message = localizations.badCredential;
+                      message = translation.errorBadCredential;
                     } else {
                       message = error.message;
                     }
@@ -164,7 +164,7 @@ class _LoginPageState extends State<LoginPage> {
     children = [
       Center(
         child: Text(
-          localizations.welcome,
+          translation.welcome,
           style: Theme.of(context)
               .primaryTextTheme
               .display1

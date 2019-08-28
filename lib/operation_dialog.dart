@@ -15,7 +15,7 @@ typedef Future OperationFunction();
 /// 2. If you want to do something right after the operation succeeded, wrap actions in operationFunction.
 /// 3. If you want to do something after the dialog is dismissed only and if operation succeeded, define
 /// a bool value as false, change it to true in operationFunction, and subscribe the future returned
-/// by showDialog, check the bool value in subscription function and do anything you like. 
+/// by showDialog, check the bool value in subscription function and do anything you like.
 class OperationDialog extends StatefulWidget {
   final Widget title;
 
@@ -57,7 +57,7 @@ class OperationDialog extends StatefulWidget {
   }) {
     return OperationDialog(
       title: Text(
-        TimelineLocalizations.of(context).confirmTitle,
+        TimelineLocalizations.of(context).operationDialog.confirmTitle,
         style: Theme.of(context).primaryTextTheme.title.copyWith(
               color: Colors.blue,
             ),
@@ -82,7 +82,7 @@ class OperationDialog extends StatefulWidget {
   }) {
     return OperationDialog(
       title: Text(
-        TimelineLocalizations.of(context).createTitle,
+        TimelineLocalizations.of(context).operationDialog.createTitle,
         style: Theme.of(context).primaryTextTheme.title.copyWith(
               color: Colors.green,
             ),
@@ -107,7 +107,7 @@ class OperationDialog extends StatefulWidget {
   }) {
     return OperationDialog(
       title: Text(
-        TimelineLocalizations.of(context).dangerousTitle,
+        TimelineLocalizations.of(context).operationDialog.dangerousTitle,
         style: Theme.of(context).primaryTextTheme.title.copyWith(
               color: Colors.red,
             ),
@@ -137,7 +137,7 @@ class OperationDialogState extends State<OperationDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = TimelineLocalizations.of(context);
+    final translation = TimelineLocalizations.of(context).operationDialog;
 
     List<Widget> content = [];
     final subtitle = widget.subtitle;
@@ -159,7 +159,7 @@ class OperationDialogState extends State<OperationDialog> {
           FlatButton(
             onPressed: () => Navigator.pop(context, success),
             child: Text(
-              localizations.ok,
+              translation.ok,
             ),
           )
         ],
@@ -175,7 +175,7 @@ class OperationDialogState extends State<OperationDialog> {
           children: <Widget>[
             FlatButton(
               onPressed: () => Navigator.pop(context),
-              child: Text(localizations.cancel),
+              child: Text(translation.cancel),
             ),
             FlatButton(
               onPressed: () {
@@ -194,7 +194,7 @@ class OperationDialogState extends State<OperationDialog> {
                   });
                 });
               },
-              child: Text(localizations.confirm),
+              child: Text(translation.confirm),
             ),
           ],
         ));
@@ -217,7 +217,7 @@ class OperationDialogState extends State<OperationDialog> {
         } else {
           c = Center(
             child: Text(
-              localizations.operationSucceeded,
+              translation.operationSucceeded,
               style: Theme.of(context)
                   .textTheme
                   .subhead

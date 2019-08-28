@@ -3,147 +3,179 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-typedef Map<String, String> TranslationInitializer();
+@immutable
+class OperationDialogTranslation {
+  OperationDialogTranslation({
+    @required this.confirmTitle,
+    @required this.createTitle,
+    @required this.dangerousTitle,
+    @required this.cancel,
+    @required this.confirm,
+    @required this.ok,
+    @required this.operationSucceeded,
+  });
 
-Map<String, String> _createEn() {
-  return {
-    "welcome": "Welcome to Timeline!",
-    "username": "username",
-    "enterUsername": "Please enter username.",
-    "password": "password",
-    "enterPassword": "Please enter password.",
-    "login": "login",
-    "fixErrorAbove": "Please fix errors above!",
-    "badCredential": "Username or password is wrong.",
-    "nickname": "nickname",
-    "qq": "QQ",
-    "email": "email",
-    "phoneNumber": "phone number",
-    "userDescription": "description",
-    "notSet": "not set",
-    "noUserDescriptionPlaceholder": "This person has not set a description.",
-    "confirmTitle": "Confirm",
-    "createTitle": "Create",
-    "dangerousTitle": "Dangerous",
-    "cancel": "cancel",
-    "confirm": "confirm",
-    "ok": 'OK',
-    "operationSucceeded": "Operation succeeded!",
-  };
+  final String confirmTitle;
+  final String createTitle;
+  final String dangerousTitle;
+  final String cancel;
+  final String confirm;
+  final String ok;
+  final String operationSucceeded;
 }
 
-Map<String, String> _createZh() {
-  return {
-    "welcome": "欢迎来到时间线！",
-    "username": "用户名",
-    "enterUsername": "请输入用户名。",
-    "password": "密码",
-    "enterPassword": "请输入密码。",
-    "login": "登录",
-    "fixErrorAbove": "请修复上面的错误！",
-    "badCredential": "用户名或密码错误。",
-    "nickname": "昵称",
-    "qq": "QQ",
-    "email": "电子邮箱",
-    "phoneNumber": "电话号码",
-    "userDescription": "个人说明",
-    "notSet": "未设置",
-    "noUserDescriptionPlaceholder": "这个人懒到没有设置个人说明。",
-    "confirmTitle": "确认",
-    "createTitle": "创建",
-    "dangerousTitle": "危险",
-    "cancel": "取消",
-    "confirm": "确认",
-    "ok": "好的",
-    "operationSucceeded": "操作成功啦！",
-  };
+@immutable
+class LoginPageTranslation {
+  LoginPageTranslation({
+    @required this.username,
+    @required this.password,
+    @required this.login,
+    @required this.welcome,
+    @required this.errorEnterUsername,
+    @required this.errorEnterPassword,
+    @required this.errorFixErrorAbove,
+    @required this.errorBadCredential,
+  });
+
+  final String username;
+  final String password;
+  final String login;
+  final String welcome;
+  final String errorEnterUsername;
+  final String errorEnterPassword;
+  final String errorFixErrorAbove;
+  final String errorBadCredential;
+}
+
+@immutable
+class UserDetailTranslation {
+  UserDetailTranslation({
+    @required this.username,
+    @required this.nickname,
+    @required this.qq,
+    @required this.email,
+    @required this.phoneNumber,
+    @required this.description,
+    @required this.notSet,
+    @required this.noDescriptionPlaceholder,
+  });
+
+  final String username;
+  final String nickname;
+  final String qq;
+  final String email;
+  final String phoneNumber;
+  final String description;
+  final String notSet;
+  final String noDescriptionPlaceholder;
+}
+
+@immutable
+class Translation {
+  Translation({
+    @required this.operationDialog,
+    @required this.loginPage,
+    @required this.userDetail,
+  });
+
+  final OperationDialogTranslation operationDialog;
+  final LoginPageTranslation loginPage;
+  final UserDetailTranslation userDetail;
+}
+
+Translation _createEnglishTranslation() {
+  const username = 'username';
+
+  return Translation(
+    operationDialog: OperationDialogTranslation(
+      confirmTitle: 'Confirm',
+      createTitle: 'Create',
+      dangerousTitle: 'Dangerous',
+      cancel: 'cancel',
+      confirm: 'confirm',
+      ok: 'OK',
+      operationSucceeded: 'Operation succeeded!',
+    ),
+    loginPage: LoginPageTranslation(
+      username: username,
+      password: 'password',
+      login: 'login',
+      welcome: 'Welcome to Timeline!',
+      errorEnterUsername: 'Please enter username.',
+      errorEnterPassword: 'Please enter password.',
+      errorFixErrorAbove: 'Please fix errors above!',
+      errorBadCredential: 'Username or password is wrong.',
+    ),
+    userDetail: UserDetailTranslation(
+      username: username,
+      nickname: 'nickname',
+      qq: 'QQ',
+      email: 'email',
+      phoneNumber: 'phone number',
+      description: 'description',
+      notSet: 'not set',
+      noDescriptionPlaceholder: 'This person has not set a description.',
+    ),
+  );
+}
+
+Translation _createChineseTranslation() {
+  const username = '用户名';
+
+  return Translation(
+    operationDialog: OperationDialogTranslation(
+      confirmTitle: '确认',
+      createTitle: '创建',
+      dangerousTitle: '危险',
+      cancel: '取消',
+      confirm: '确认',
+      ok: '好的',
+      operationSucceeded: '操作成功啦！',
+    ),
+    loginPage: LoginPageTranslation(
+      username: username,
+      password: '密码',
+      login: '登录',
+      welcome: '欢迎来到时间线！',
+      errorEnterUsername: '请输入用户名。',
+      errorEnterPassword: '请输入密码。',
+      errorFixErrorAbove: '请修复上面的错误！',
+      errorBadCredential: '用户名或密码错误。',
+    ),
+    userDetail: UserDetailTranslation(
+      username: username,
+      nickname: '昵称',
+      qq: 'QQ',
+      email: '电子邮箱',
+      phoneNumber: '电话号码',
+      description: '个人说明',
+      notSet: '未设置',
+      noDescriptionPlaceholder: '这个人懒到没有设置个人说明。',
+    ),
+  );
 }
 
 class TimelineLocalizations {
   TimelineLocalizations(this.locale) {
-    _map = _initializerMap[locale.languageCode]();
+    _translation = _initializerMap[locale.languageCode]();
   }
 
-  Map<String, String> _map;
+  Translation _translation;
+
+  Translation get translation => _translation;
 
   final Locale locale;
 
-  static TimelineLocalizations of(BuildContext context) {
+  static Translation of(BuildContext context) {
     return Localizations.of<TimelineLocalizations>(
-        context, TimelineLocalizations);
+            context, TimelineLocalizations)
+        .translation;
   }
 
-  static Map<String, TranslationInitializer> _initializerMap = {
-    'en': _createEn,
-    'zh': _createZh,
+  static Map<String, Translation Function()> _initializerMap = {
+    'en': _createEnglishTranslation,
+    'zh': _createChineseTranslation,
   };
-
-  String get welcome {
-    return _map['welcome'];
-  }
-
-  String get username {
-    return _map['username'];
-  }
-
-  String get enterUsername {
-    return _map['enterUsername'];
-  }
-
-  String get password {
-    return _map['password'];
-  }
-
-  String get enterPassword {
-    return _map['enterPassword'];
-  }
-
-  String get login {
-    return _map['login'];
-  }
-
-  String get fixErrorAbove {
-    return _map['fixErrorAbove'];
-  }
-
-  String get badCredential {
-    return _map['badCredential'];
-  }
-
-  String get nickname {
-    return _map['nickname'];
-  }
-
-  String get qq {
-    return _map['qq'];
-  }
-
-  String get email {
-    return _map['email'];
-  }
-
-  String get phoneNumber => _map['phoneNumber'];
-
-  String get userDescription => _map['userDescription'];
-
-  String get notSet => _map['notSet'];
-
-  String get noUserDescriptionPlaceholder =>
-      _map['noUserDescriptionPlaceholder'];
-
-  String get confirmTitle => _map['confirmTitle'];
-
-  String get createTitle => _map['createTitle'];
-
-  String get dangerousTitle => _map['dangerousTitle'];
-
-  String get cancel => _map['cancel'];
-
-  String get confirm => _map['confirm'];
-
-  String get ok => _map['ok'];
-
-  String get operationSucceeded => _map['operationSucceeded'];
 }
 
 class TimelineLocalizationsDelegate

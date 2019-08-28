@@ -115,7 +115,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = TimelineLocalizations.of(context);
+    final translation = TimelineLocalizations.of(context).userDetail;
 
     final user = UserManager().currentUser;
     final editable = user.username == username || user.administrator;
@@ -256,22 +256,21 @@ class _UserDetailPageState extends State<UserDetailPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
-                        createItem(localizations.username, username, null),
-                        createItem(localizations.nickname, _details.nickname,
-                            localizations.notSet),
+                        createItem(translation.username, username, null),
+                        createItem(translation.nickname, _details.nickname,
+                            translation.notSet),
                       ],
                     ),
                   ),
                 ),
               ],
             ),
-            createItem(localizations.qq, _details.qq, localizations.notSet),
-            createItem(
-                localizations.email, _details.email, localizations.notSet),
-            createItem(localizations.phoneNumber, _details.phoneNumber,
-                localizations.notSet),
-            createItem(localizations.userDescription, _details.description,
-                localizations.noUserDescriptionPlaceholder),
+            createItem(translation.qq, _details.qq, translation.notSet),
+            createItem(translation.email, _details.email, translation.notSet),
+            createItem(translation.phoneNumber, _details.phoneNumber,
+                translation.notSet),
+            createItem(translation.description, _details.description,
+                translation.noDescriptionPlaceholder),
           ],
         );
       }
@@ -372,7 +371,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
 
   @override
   Widget build(BuildContext context) {
-    final localizations = TimelineLocalizations.of(context);
+    final translation = TimelineLocalizations.of(context).userDetail;
 
     Widget content = Container();
 
@@ -404,7 +403,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
           child: Row(
             children: <Widget>[
               Text(
-                localizations.username,
+                translation.username,
                 style: Theme.of(context).primaryTextTheme.body1.copyWith(
                       color: Colors.blue,
                     ),
@@ -422,13 +421,13 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
             ],
           ),
         ),
-        createField(localizations.nickname, _nicknameController),
-        createField(localizations.qq, _qqController),
-        createField(localizations.email, _emailController),
-        createField(localizations.phoneNumber, _phoneNumberController),
+        createField(translation.nickname, _nicknameController),
+        createField(translation.qq, _qqController),
+        createField(translation.email, _emailController),
+        createField(translation.phoneNumber, _phoneNumberController),
         Expanded(
           child: createField(
-              localizations.userDescription, _descriptionController,
+              translation.description, _descriptionController,
               outlineBorder: true, expand: true),
         ),
       ],
