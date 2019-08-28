@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'avatar.dart';
+import 'i18n.dart';
 import 'user_service.dart';
-
-// TODO: translation
 
 enum DrawerSelectedItem { none, home, administration, settings }
 
@@ -15,6 +14,8 @@ class MyDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final translation = TimelineLocalizations.of(context).drawer;
+
     var tiles = <Widget>[];
 
     Widget createItem(DrawerSelectedItem item, String title, String route) {
@@ -28,18 +29,19 @@ class MyDrawer extends StatelessWidget {
       );
     }
 
-    tiles.add(createItem(DrawerSelectedItem.home, 'Home', '/home'));
+    tiles.add(createItem(DrawerSelectedItem.home, translation.home, '/home'));
     tiles.add(Divider());
 
     var user = UserManager().currentUser;
 
     if (user.administrator) {
-      tiles.add(createItem(
-          DrawerSelectedItem.administration, 'Administration', '/admin'));
+      tiles.add(createItem(DrawerSelectedItem.administration,
+          translation.administration, '/admin'));
       tiles.add(Divider());
     }
 
-    tiles.add(createItem(DrawerSelectedItem.settings, 'Settings', '/settings'));
+    tiles.add(createItem(
+        DrawerSelectedItem.settings, translation.settings, '/settings'));
 
     Widget headerContent;
 

@@ -25,6 +25,19 @@ class OperationDialogTranslation {
 }
 
 @immutable
+class DrawerTranslation {
+  DrawerTranslation({
+    @required this.home,
+    @required this.administration,
+    @required this.settings,
+  });
+
+  final String home;
+  final String administration;
+  final String settings;
+}
+
+@immutable
 class LoginPageTranslation {
   LoginPageTranslation({
     @required this.username,
@@ -74,11 +87,13 @@ class UserDetailTranslation {
 class Translation {
   Translation({
     @required this.operationDialog,
+    @required this.drawer,
     @required this.loginPage,
     @required this.userDetail,
   });
 
   final OperationDialogTranslation operationDialog;
+  final DrawerTranslation drawer;
   final LoginPageTranslation loginPage;
   final UserDetailTranslation userDetail;
 }
@@ -95,6 +110,11 @@ Translation _createEnglishTranslation() {
       confirm: 'confirm',
       ok: 'OK',
       operationSucceeded: 'Operation succeeded!',
+    ),
+    drawer: DrawerTranslation(
+      home: 'Home',
+      administration: 'Administration',
+      settings: 'Settings',
     ),
     loginPage: LoginPageTranslation(
       username: username,
@@ -131,6 +151,11 @@ Translation _createChineseTranslation() {
       confirm: '确认',
       ok: '好的',
       operationSucceeded: '操作成功啦！',
+    ),
+    drawer: DrawerTranslation(
+      home: '主页',
+      administration: '管理',
+      settings: '设置',
     ),
     loginPage: LoginPageTranslation(
       username: username,
