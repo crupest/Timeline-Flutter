@@ -39,7 +39,7 @@ Future<UserDetails> fetchUserDetail(String username) async {
   assert(username != null);
   assert(username.isNotEmpty);
   final res = await get(
-      '$apiBaseUrl/users/$username/details?token=${UserManager.getInstance().token}');
+      '$apiBaseUrl/users/$username/details?token=${UserManager().token}');
   checkError(res);
   Map<String, dynamic> body = jsonDecode(res.body);
   return UserDetails(
@@ -68,7 +68,7 @@ Future putUserAvatar(String username, String mimeType, List<int> data) async {
   assert(mimeType.isNotEmpty);
 
   final res = await put(
-    '$apiBaseUrl/users/$username/avatar?token=${UserManager.getInstance().token}',
+    '$apiBaseUrl/users/$username/avatar?token=${UserManager().token}',
     headers: {
       'Content-Type': mimeType,
     },
@@ -117,7 +117,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Widget build(BuildContext context) {
     final localizations = TimelineLocalizations.of(context);
 
-    final user = UserManager.getInstance().currentUser;
+    final user = UserManager().currentUser;
     final editable = user.username == username || user.administrator;
 
     Widget content;
@@ -314,7 +314,7 @@ Future updateUserDetail(String username, UserDetails details) async {
   assert(username != null);
   assert(username.isNotEmpty);
   final res = await patch(
-      '$apiBaseUrl/users/$username/details?token=${UserManager.getInstance().token}',
+      '$apiBaseUrl/users/$username/details?token=${UserManager().token}',
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         _nicknameKey: details.nickname,
@@ -441,15 +441,17 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
           IconButton(
             icon: Icon(Icons.check),
             onPressed: () {
+              bool success = false;
+
               showDialog(
                 context: context,
                 builder: (context) {
-                  //TODO: error message
-                  return OperationDialog(
-                    title: Text('Confirm!'), //TODO: translation.
-                    subtitle: Text('Are you sure to change your informantion?'),
-                    operationFunction: () {
-                      return updateUserDetail(
+                  return OperationDialog.confirm(
+                    context,
+                    subtitle: Text(
+                        'Are you sure to change your informantion?'), // TODO: translation
+                    operationFunction: () async {
+                      await updateUserDetail(
                         widget.username,
                         UserDetails(
                           nickname: _nicknameController.text,
@@ -459,24 +461,26 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
                           description: _descriptionController.text,
                         ),
                       );
-                    },
-                    onOk: () {
-                      String coerce(String raw) => raw.isEmpty ? null : raw;
-
-                      Navigator.of(context).pop(
-                        UserDetails(
-                          nickname: coerce(_nicknameController.text),
-                          qq: coerce(_qqController.text),
-                          email: coerce(_emailController.text),
-                          phoneNumber: coerce(_phoneNumberController.text),
-                          description: coerce(_descriptionController.text),
-                        ),
-                      );
+                      success = true;
                     },
                   );
                 },
                 barrierDismissible: false,
-              );
+              ).then((_) {
+                if (success == true) {
+                  String coerce(String raw) => raw.isEmpty ? null : raw;
+
+                  Navigator.of(context).pop(
+                    UserDetails(
+                      nickname: coerce(_nicknameController.text),
+                      qq: coerce(_qqController.text),
+                      email: coerce(_emailController.text),
+                      phoneNumber: coerce(_phoneNumberController.text),
+                      description: coerce(_descriptionController.text),
+                    ),
+                  );
+                }
+              });
             },
           )
         ],

@@ -131,14 +131,15 @@ class _LoginPageState extends State<LoginPage> {
                   setState(() {
                     _isProcessing = true;
                   });
-                  UserManager.getInstance()
+                  UserManager()
                       .login(_usernameController.text, _passwordController.text)
                       .then((_) {
                     Navigator.pushReplacementNamed(context, '/home');
                   }, onError: (error) {
                     String message;
                     if (error is HttpCodeException &&
-                        error.errorCode == -1001) {
+                        (error.errorCode == -1001 ||
+                            error.errorCode == -1002)) {
                       message = localizations.badCredential;
                     } else {
                       message = error.message;

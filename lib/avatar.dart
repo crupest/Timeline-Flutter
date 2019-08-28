@@ -63,7 +63,7 @@ class _AvatarManager {
   String _getAvatarUrl(String username) {
     assert(username != null);
     assert(username.isNotEmpty);
-    return "$apiBaseUrl/users/$username/avatar?token=${UserManager.getInstance().token}";
+    return "$apiBaseUrl/users/$username/avatar?token=${UserManager().token}";
   }
 
   File _getAvatarCacheFile(String username) {

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'avatar.dart';
 import 'user_service.dart';
 
+// TODO: translation
+
 enum DrawerSelectedItem { none, home, administration, settings }
 
 class MyDrawer extends StatelessWidget {
@@ -29,7 +31,7 @@ class MyDrawer extends StatelessWidget {
     tiles.add(createItem(DrawerSelectedItem.home, 'Home', '/home'));
     tiles.add(Divider());
 
-    var user = UserManager.getInstance().currentUser;
+    var user = UserManager().currentUser;
 
     if (user.administrator) {
       tiles.add(createItem(

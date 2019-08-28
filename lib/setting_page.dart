@@ -95,7 +95,7 @@ class SettingsPage extends StatelessWidget {
                         title: Text('Confirm'),
                         subtitle: Text('Are you sure you want to logout?'),
                         operationFunction: () async {
-                          await UserManager.getInstance().logout();
+                          await UserManager().logout();
                           Navigator.of(context)
                               .pushNamedAndRemoveUntil('/login', (_) => false);
                         },

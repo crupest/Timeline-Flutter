@@ -21,23 +21,19 @@ class User {
         administrator = json[key_administrator];
 }
 
-class AlreadyLoginException implements Exception {
-  final String message = 'A user has already login.';
-}
-
 class UserManager {
   static UserManager _instance;
   static const tokenPreferenceKey = 'last_token';
 
-  BehaviorSubject<User> _user = BehaviorSubject<User>();
+  BehaviorSubject<User> _user = BehaviorSubject<User>.seeded(null);
 
   String _token;
 
-  UserManager._create();
+  UserManager._();
 
-  factory UserManager.getInstance() {
+  factory UserManager() {
     if (_instance == null) {
-      _instance = UserManager._create();
+      _instance = UserManager._();
     }
     return _instance;
   }
@@ -71,22 +67,18 @@ class UserManager {
         }),
         headers: {'Content-Type': 'application/json'},
       );
-      if (res.statusCode == 200) {
-        var body = jsonDecode(res.body) as Map<String, dynamic>;
-        var user = User.fromJson(body['user']);
-        _token = savedToken;
-        _user.add(user);
-        return user;
-      } else {
-        return null;
-      }
-    } else {
-      return null;
+      checkError(res);
+      var body = jsonDecode(res.body) as Map<String, dynamic>;
+      var user = User.fromJson(body['user']);
+      _token = savedToken;
+      _user.add(user);
+      return user;
     }
+    return null;
   }
 
   Future<User> login(String username, String password) async {
-    if (currentUser != null) throw AlreadyLoginException();
+    if (currentUser != null) throw Exception('You can\'t login twice.');
     var res = await http.post(
       '$apiBaseUrl/token/create',
       body: jsonEncode(

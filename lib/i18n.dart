@@ -22,6 +22,13 @@ Map<String, String> _createEn() {
     "userDescription": "description",
     "notSet": "not set",
     "noUserDescriptionPlaceholder": "This person has not set a description.",
+    "confirmTitle": "Confirm",
+    "createTitle": "Create",
+    "dangerousTitle": "Dangerous",
+    "cancel": "cancel",
+    "confirm": "confirm",
+    "ok": 'OK',
+    "operationSucceeded": "Operation succeeded!",
   };
 }
 
@@ -42,6 +49,13 @@ Map<String, String> _createZh() {
     "userDescription": "个人说明",
     "notSet": "未设置",
     "noUserDescriptionPlaceholder": "这个人懒到没有设置个人说明。",
+    "confirmTitle": "确认",
+    "createTitle": "创建",
+    "dangerousTitle": "危险",
+    "cancel": "取消",
+    "confirm": "确认",
+    "ok": "好的",
+    "operationSucceeded": "操作成功啦！",
   };
 }
 
@@ -114,7 +128,22 @@ class TimelineLocalizations {
 
   String get notSet => _map['notSet'];
 
-  String get noUserDescriptionPlaceholder => _map['noUserDescriptionPlaceholder'];
+  String get noUserDescriptionPlaceholder =>
+      _map['noUserDescriptionPlaceholder'];
+
+  String get confirmTitle => _map['confirmTitle'];
+
+  String get createTitle => _map['createTitle'];
+
+  String get dangerousTitle => _map['dangerousTitle'];
+
+  String get cancel => _map['cancel'];
+
+  String get confirm => _map['confirm'];
+
+  String get ok => _map['ok'];
+
+  String get operationSucceeded => _map['operationSucceeded'];
 }
 
 class TimelineLocalizationsDelegate

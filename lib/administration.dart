@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'drawer.dart';
 import 'user_admin.dart';
 
+//TODO: translation
+
 class AdministrationPage extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {

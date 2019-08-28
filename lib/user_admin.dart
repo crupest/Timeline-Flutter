@@ -8,35 +8,19 @@ import 'user_service.dart';
 import 'operation_dialog.dart';
 import 'http.dart';
 
+//TODO: translation
+
 class _UserAdminService {
   static const String _key_password = User.key_password;
   static const String _key_administrator = User.key_administrator;
 
   String _generateUrl(String username) =>
-      '$apiBaseUrl/users/$username?token=${UserManager.getInstance().token}';
-
-  _checkError(Response response, {int successCode = 200}) {
-    if (response.statusCode == successCode) return;
-    var rawBody = jsonDecode(response.body) as Map<String, dynamic>;
-    StringBuffer messageBuilder = StringBuffer();
-    if (rawBody.containsKey('code')) {
-      messageBuilder.writeln('Error code is ${rawBody["code"]}.');
-    }
-    if (rawBody.containsKey('message')) {
-      messageBuilder.writeln('Error message is ${rawBody["message"]}.');
-    }
-    if (messageBuilder.isEmpty) {
-      throw Exception(
-          'Unknown error. Response status code is ${response.statusCode}.');
-    } else {
-      throw Exception(messageBuilder.toString());
-    }
-  }
+      '$apiBaseUrl/users/$username?token=${UserManager().token}';
 
   Future<List<User>> fetchUserList() async {
     var res =
-        await get('$apiBaseUrl/users?token=${UserManager.getInstance().token}');
-    _checkError(res);
+        await get('$apiBaseUrl/users?token=${UserManager().token}');
+    checkError(res);
     var rawList = jsonDecode(res.body) as List<dynamic>;
     return rawList.map((raw) => User.fromJson(raw)).toList();
   }
@@ -47,19 +31,19 @@ class _UserAdminService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(
             {_key_password: password, _key_administrator: administrator}));
-    _checkError(res, successCode: 201);
+    checkError(res, successCode: 201);
   }
 
   Future changeUsername(String oldUsername, String newUsername) async {
     var res = await post(
-      '$apiBaseUrl/userop/changeusername?token=${UserManager.getInstance().token}',
+      '$apiBaseUrl/userop/changeusername?token=${UserManager().token}',
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'oldUsername': oldUsername,
         'newUsername': newUsername,
       }),
     );
-    _checkError(res);
+    checkError(res);
   }
 
   Future changePassword(String username, String newPassword) async {
@@ -68,12 +52,12 @@ class _UserAdminService {
         body: jsonEncode({
           _key_password: newPassword,
         }));
-    _checkError(res);
+    checkError(res);
   }
 
   Future removeUser(String username) async {
     var res = await delete(_generateUrl(username));
-    _checkError(res);
+    checkError(res);
   }
 
   Future changePermission(String username, bool administrator) async {
@@ -82,7 +66,7 @@ class _UserAdminService {
         body: jsonEncode({
           _key_administrator: administrator,
         }));
-    _checkError(res);
+    checkError(res);
   }
 }
 
@@ -307,29 +291,31 @@ class _CreateUserDialogState extends State<_CreateUserDialog> {
       subtitle: Text('You are creating a user.'),
       operationFunction: () => widget.createUserFunction(
           _usernameController.text, _passwordController.text, _isAdmin),
-      inputContent: <Widget>[
-        TextField(
-          controller: _usernameController,
-          decoration: InputDecoration(
-              border: UnderlineInputBorder(), labelText: 'username'),
-        ),
-        TextField(
-          controller: _passwordController,
-          decoration: InputDecoration(
-              border: UnderlineInputBorder(), labelText: 'password'),
-        ),
-        Row(children: <Widget>[
-          Checkbox(
-            onChanged: (value) {
-              setState(() {
-                _isAdmin = value;
-              });
-            },
-            value: _isAdmin,
+      inputContent: Column(
+        children: <Widget>[
+          TextField(
+            controller: _usernameController,
+            decoration: InputDecoration(
+                border: UnderlineInputBorder(), labelText: 'username'),
           ),
-          Text('administrator'),
-        ]),
-      ],
+          TextField(
+            controller: _passwordController,
+            decoration: InputDecoration(
+                border: UnderlineInputBorder(), labelText: 'password'),
+          ),
+          Row(children: <Widget>[
+            Checkbox(
+              onChanged: (value) {
+                setState(() {
+                  _isAdmin = value;
+                });
+              },
+              value: _isAdmin,
+            ),
+            Text('administrator'),
+          ]),
+        ],
+      ),
     );
   }
 }
@@ -372,13 +358,11 @@ class _ChangeUsernameDialogState extends State<_ChangeUsernameDialog> {
     return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text('You are changing username for ${widget.username}.'),
-      inputContent: <Widget>[
-        TextField(
-          decoration: InputDecoration(
-              border: UnderlineInputBorder(), labelText: 'new username'),
-          controller: _controller,
-        ),
-      ],
+      inputContent: TextField(
+        decoration: InputDecoration(
+            border: UnderlineInputBorder(), labelText: 'new username'),
+        controller: _controller,
+      ),
       operationFunction: () {
         return widget.changeUsernameFunction(widget.username, _controller.text);
       },
@@ -424,13 +408,11 @@ class _ChangePasswordDialogState extends State<_ChangePasswordDialog> {
     return OperationDialog(
       title: Text('Dangerous!'),
       subtitle: Text('You are changing password for ${widget.username}.'),
-      inputContent: <Widget>[
-        TextField(
-          decoration: InputDecoration(
-              border: UnderlineInputBorder(), labelText: 'new password'),
-          controller: _controller,
-        ),
-      ],
+      inputContent: TextField(
+        decoration: InputDecoration(
+            border: UnderlineInputBorder(), labelText: 'new password'),
+        controller: _controller,
+      ),
       operationFunction: () {
         return widget.changePasswordFunction(widget.username, _controller.text);
       },
