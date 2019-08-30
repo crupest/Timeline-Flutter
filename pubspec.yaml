@@ -30,9 +30,7 @@ dependencies:
   shared_preferences: ^0.5.3+4
   path_provider: ^1.2.0
 
-  rxdart: ^0.22.0
-
-  http: ^0.12.0+2
+  dio: ^2.1.0
 
   fluro: "^1.5.1"
   

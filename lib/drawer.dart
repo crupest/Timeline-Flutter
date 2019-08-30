@@ -32,7 +32,7 @@ class MyDrawer extends StatelessWidget {
     tiles.add(createItem(DrawerSelectedItem.home, translation.home, '/home'));
     tiles.add(Divider());
 
-    var user = UserManager().currentUser;
+    var user = UserManager().user;
 
     if (user.administrator) {
       tiles.add(createItem(DrawerSelectedItem.administration,

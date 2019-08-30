@@ -2,12 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui show instantiateImageCodec, Codec;
 
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:path_provider/path_provider.dart';
 
-import 'user_service.dart';
 import 'http.dart';
 
 class _AvatarImageProvider extends ImageProvider<_AvatarImageProvider> {
@@ -37,12 +36,16 @@ class _AvatarManager {
     return _instance;
   }
 
+  Dio _dio;
+
   String _cacheDir;
   File _etagMapFile;
 
   Map<String, String> _etagMap;
 
-  _AvatarManager._();
+  _AvatarManager._() {
+    _dio = createDioWithToken();
+  }
 
   Future _checkAndInit() async {
     if (_cacheDir == null) {
@@ -63,7 +66,7 @@ class _AvatarManager {
   String _getAvatarUrl(String username) {
     assert(username != null);
     assert(username.isNotEmpty);
-    return "$apiBaseUrl/users/$username/avatar?token=${UserManager().token}";
+    return "$apiBaseUrl/users/$username/avatar";
   }
 
   File _getAvatarCacheFile(String username) {
@@ -83,10 +86,16 @@ class _AvatarManager {
     if (etag != null) {
       headers['If-None-Match'] = etag;
     }
-    var res = await get(_getAvatarUrl(username), headers: headers);
+    var res = await _dio.get(
+      _getAvatarUrl(username),
+      options: Options(
+        headers: headers,
+        responseType: ResponseType.bytes,
+      ),
+    );
     if (res.statusCode == 200) {
-      final newEtag = res.headers['etag'];
-      final body = res.bodyBytes;
+      final newEtag = res.headers.value(HttpHeaders.etagHeader);
+      final body = res.data;
       if (newEtag != null) {
         _updateCache(username, body, newEtag);
       } else {
@@ -98,7 +107,7 @@ class _AvatarManager {
       return await ui.instantiateImageCodec(
           await _getAvatarCacheFile(username).readAsBytes());
     } else {
-      throw HttpException(res.statusCode);
+      throw Exception('Unrecognized status code.');
     }
   }
 

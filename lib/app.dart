@@ -3,7 +3,6 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'i18n.dart';
 import 'route.dart';
-import 'user_service.dart';
 
 class MyApp extends StatefulWidget {
   @override
@@ -21,7 +20,6 @@ class _MyAppState extends State<MyApp> {
 
   @override
   void dispose() {
-    UserManager.disposeInstance();
     super.dispose();
   }
 

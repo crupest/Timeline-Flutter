@@ -1,57 +1,84 @@
-import 'dart:convert';
+import 'dart:io';
 
-import 'package:http/http.dart';
+import 'package:dio/dio.dart';
+
+import 'user_service.dart';
 
 final String apiBaseUrl = 'https://api.crupest.xyz';
 
-class HttpException implements Exception {
-  HttpException(this.statusCode, {this.message}) : assert(statusCode != null);
+BaseOptions dioOptions = BaseOptions(
+  baseUrl: apiBaseUrl,
+  connectTimeout: 5000,
+  receiveTimeout: 5000,
+);
 
-  String message;
+Dio createDio() {
+  final dio = Dio(dioOptions);
+  dio.interceptors.add(InterceptorsWrapper(onError: (error) {
+    if (error.type == DioErrorType.RESPONSE) {
+      final data = error.response.data;
+      int code;
+      String message;
+      if (data != null && data is Map<String, dynamic>) {
+        dynamic c = data['code'];
+        if (c is int) code = c;
 
-  int statusCode;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer('HttpException: Status code is $statusCode.');
-    if (message != null) {
-      buffer.write(message);
+        dynamic m = data['message'];
+        if (m is String) message = m;
+      }
+      if (code != null || message != null) {
+        return dio.reject(HttpCommonErrorData(code: code, message: message));
+      }
     }
-    return buffer.toString();
-  }
+    return error;
+  }));
+  return dio;
 }
 
-class HttpCodeException extends HttpException {
-  HttpCodeException(this.errorCode, int responseCode, {String message})
-      : assert(errorCode != null),
-        super(responseCode, message: message);
-
-  int errorCode;
-
-  @override
-  String toString() {
-    final buffer = StringBuffer(
-        'HttpException: Status code is $statusCode. Error code is $errorCode.');
-    if (message != null) {
-      buffer.write(message);
-    }
-    return buffer.toString();
-  }
+Dio createDioWithToken() {
+  final dio = createDio();
+  dio.interceptors.add(InterceptorsWrapper(
+    onRequest: (options) {
+      options.headers[HttpHeaders.authorizationHeader] = 'Bearer ${UserManager().token}';
+      return options;
+    },
+  ));
+  return dio;
 }
 
-checkError(Response response, {int successCode = 200}) {
-  if (response.statusCode == successCode) return;
+// Corresponds to CommonResponse in server.
+class HttpCommonErrorData {
+  HttpCommonErrorData({this.code, this.message});
 
   int code;
   String message;
-  try {
-    var rawBody = jsonDecode(response.body) as Map<String, dynamic>;
-    code = rawBody["code"];
-    message = rawBody["message"];
-  } catch (_) {}
-  if (code != null) {
-    throw HttpCodeException(code, response.statusCode, message: message);
-  } else {
-    throw HttpException(response.statusCode, message: message);
+
+  @override
+  String toString() {
+    final buffer = StringBuffer();
+    if (code != null) {
+      buffer.write('Error code is $code.');
+    }
+    if (message != null) {
+      if (code != null) buffer.write(' ');
+      buffer.write(message);
+    }
+    return buffer.toString();
   }
+}
+
+bool isNetworkError(DioError e) {
+  return !isNotNetworkError(e);
+}
+
+bool isNotNetworkError(DioError e) {
+  return e.type == DioErrorType.DEFAULT || e.type == DioErrorType.RESPONSE;
+}
+
+int getCommonErrorCode(DioError e) {
+  if (e.type == DioErrorType.DEFAULT) {
+    final errorData = e.error;
+    if (errorData is HttpCommonErrorData) return errorData.code;
+  }
+  return null;
 }

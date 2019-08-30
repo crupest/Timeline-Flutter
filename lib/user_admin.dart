@@ -1,7 +1,5 @@
-import 'dart:convert';
-
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'user_service.dart';
@@ -14,59 +12,61 @@ class _UserAdminService {
   static const String _key_password = User.key_password;
   static const String _key_administrator = User.key_administrator;
 
-  String _generateUrl(String username) =>
-      '$apiBaseUrl/users/$username?token=${UserManager().token}';
+  Dio _dio;
+
+  _UserAdminService() {
+    _dio = createDioWithToken();
+  }
+
+  String _generateUrl(String username) => '$apiBaseUrl/users/$username';
 
   Future<List<User>> fetchUserList() async {
-    var res =
-        await get('$apiBaseUrl/users?token=${UserManager().token}');
-    checkError(res);
-    var rawList = jsonDecode(res.body) as List<dynamic>;
+    var res = await _dio.get('$apiBaseUrl/users');
+    var rawList = res.data as List<dynamic>;
     return rawList.map((raw) => User.fromJson(raw)).toList();
   }
 
   Future createUser(
       String username, String password, bool administrator) async {
-    var res = await put(_generateUrl(username),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(
-            {_key_password: password, _key_administrator: administrator}));
-    checkError(res, successCode: 201);
+    await _dio.put(
+      _generateUrl(username),
+      data: {
+        _key_password: password,
+        _key_administrator: administrator,
+      },
+    );
   }
 
   Future changeUsername(String oldUsername, String newUsername) async {
-    var res = await post(
-      '$apiBaseUrl/userop/changeusername?token=${UserManager().token}',
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
+    await _dio.post(
+      '$apiBaseUrl/userop/changeusername',
+      data: {
         'oldUsername': oldUsername,
         'newUsername': newUsername,
-      }),
+      },
     );
-    checkError(res);
   }
 
   Future changePassword(String username, String newPassword) async {
-    var res = await patch(_generateUrl(username),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          _key_password: newPassword,
-        }));
-    checkError(res);
+    await _dio.patch(
+      _generateUrl(username),
+      data: {
+        _key_password: newPassword,
+      },
+    );
   }
 
   Future removeUser(String username) async {
-    var res = await delete(_generateUrl(username));
-    checkError(res);
+    await _dio.delete(_generateUrl(username));
   }
 
   Future changePermission(String username, bool administrator) async {
-    var res = await patch(_generateUrl(username),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          _key_administrator: administrator,
-        }));
-    checkError(res);
+    await _dio.patch(
+      _generateUrl(username),
+      data: {
+        _key_administrator: administrator,
+      },
+    );
   }
 }
 
@@ -355,8 +355,8 @@ class _ChangeUsernameDialogState extends State<_ChangeUsernameDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return OperationDialog(
-      title: Text('Dangerous!'),
+    return OperationDialog.dangerous(
+      context,
       subtitle: Text('You are changing username for ${widget.username}.'),
       inputContent: TextField(
         decoration: InputDecoration(

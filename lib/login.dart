@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:timeline/http.dart';
 
+import 'http.dart';
 import 'i18n.dart';
 import 'user_service.dart';
+import 'validatable_text_field.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -12,26 +13,24 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  TextEditingController _usernameController;
-  TextEditingController _passwordController;
+  GlobalKey<ValidatableTextFieldState> _usernameKey;
+  GlobalKey<ValidatableTextFieldState> _passwordKey;
   bool _isProcessing;
   String _error;
 
-  String _usernameError;
-  String _passwordError;
+  static const int _usernameError_empty = 1;
+  static const int _passwordError_empty = 1;
 
   @override
   void initState() {
     super.initState();
-    _usernameController = TextEditingController();
-    _passwordController = TextEditingController();
+    _usernameKey = GlobalKey();
+    _passwordKey = GlobalKey();
     _isProcessing = false;
   }
 
   @override
   void dispose() {
-    _usernameController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
@@ -41,56 +40,41 @@ class _LoginPageState extends State<LoginPage> {
 
     List<Widget> children = [];
 
-    _validate(
-        String value, dynamic error, void errorSetter(), void errorClearer()) {
-      if (value.isEmpty && error == null) {
-        setState(() {
-          errorSetter();
-        });
-      } else if (value.isNotEmpty && error != null) {
-        setState(() {
-          errorClearer();
-        });
-      }
-    }
-
-    validateUsername(String value) {
-      _validate(value, _usernameError, () {
-        _usernameError = translation.errorEnterUsername;
-      }, () {
-        _usernameError = null;
-      });
-    }
-
-    validatePassword(String value) {
-      _validate(value, _passwordError, () {
-        _passwordError = translation.errorEnterPassword;
-      }, () {
-        _passwordError = null;
-      });
-    }
-
     List<Widget> formChildren = [];
 
     formChildren.addAll([
-      TextField(
-          controller: _usernameController,
-          decoration: InputDecoration(
-            labelText: translation.username,
-            errorText: _usernameError,
-            isDense: true,
-          ),
-          onChanged: validateUsername),
-      TextField(
-        controller: _passwordController,
+      ValidatableTextField(
+        key: _usernameKey,
+        validator: (value) {
+          if (value.isEmpty) return _usernameError_empty;
+          return null;
+        },
+        errorMessageGenerator: (context, errorCode) {
+          if (errorCode == _usernameError_empty)
+            return TimelineLocalizations.of(context)
+                .loginPage
+                .errorEnterUsername;
+          throw Exception('Unknown error code.'); // not reachable
+        },
+        decorationBuilder: ValidatableTextField.createDecorationGenerator(
+            labelText: translation.username),
+      ),
+      ValidatableTextField(
+        key: _passwordKey,
+        validator: (value) {
+          if (value.isEmpty) return _passwordError_empty;
+          return null;
+        },
+        errorMessageGenerator: (context, errorCode) {
+          if (errorCode == _passwordError_empty)
+            return TimelineLocalizations.of(context)
+                .loginPage
+                .errorEnterPassword;
+          throw Exception('Unknown error code.'); // not reachable
+        },
+        decorationBuilder: ValidatableTextField.createDecorationGenerator(
+            labelText: translation.password),
         obscureText: true,
-        decoration: InputDecoration(
-          labelText: translation.password,
-          errorText: _passwordError,
-          isDense: true,
-        ),
-        enabled: !_isProcessing,
-        onChanged: validatePassword,
       ),
       SizedBox(
         height: 10,
@@ -118,10 +102,11 @@ class _LoginPageState extends State<LoginPage> {
             : FlatButton(
                 child: Text(translation.login),
                 onPressed: () {
-                  validateUsername(_usernameController.text);
-                  validatePassword(_passwordController.text);
+                  final usernameState = _usernameKey.currentState;
+                  final passwordState = _passwordKey.currentState;
 
-                  if (_usernameError != null || _passwordError != null) {
+                  if (!usernameState.validateNow() ||
+                      !passwordState.validateNow()) {
                     setState(() {
                       _error = translation.errorFixErrorAbove;
                     });
@@ -132,14 +117,13 @@ class _LoginPageState extends State<LoginPage> {
                     _isProcessing = true;
                   });
                   UserManager()
-                      .login(_usernameController.text, _passwordController.text)
+                      .login(usernameState.text, passwordState.text)
                       .then((_) {
                     Navigator.pushReplacementNamed(context, '/home');
                   }, onError: (error) {
                     String message;
-                    if (error is HttpCodeException &&
-                        (error.errorCode == -1001 ||
-                            error.errorCode == -1002)) {
+                    int code = getCommonErrorCode(error);
+                    if (code == -1001 || code == -1002) {
                       message = translation.errorBadCredential;
                     } else {
                       message = error.message;

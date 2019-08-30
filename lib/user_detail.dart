@@ -1,7 +1,7 @@
-import 'dart:convert';
+import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:timeline/view_photo.dart';
@@ -38,10 +38,9 @@ const _descriptionKey = 'description';
 Future<UserDetails> fetchUserDetail(String username) async {
   assert(username != null);
   assert(username.isNotEmpty);
-  final res = await get(
-      '$apiBaseUrl/users/$username/details?token=${UserManager().token}');
-  checkError(res);
-  Map<String, dynamic> body = jsonDecode(res.body);
+  final res =
+      await createDioWithToken().get('$apiBaseUrl/users/$username/details');
+  Map<String, dynamic> body = res.data;
   return UserDetails(
     nickname: body[_nicknameKey],
     qq: body[_qqKey],
@@ -67,14 +66,15 @@ Future putUserAvatar(String username, String mimeType, List<int> data) async {
   assert(mimeType != null);
   assert(mimeType.isNotEmpty);
 
-  final res = await put(
-    '$apiBaseUrl/users/$username/avatar?token=${UserManager().token}',
-    headers: {
-      'Content-Type': mimeType,
-    },
-    body: data,
+  await createDioWithToken().put(
+    '$apiBaseUrl/users/$username/avatar',
+    options: RequestOptions(
+      headers: {
+        HttpHeaders.contentTypeHeader: mimeType,
+      },
+    ),
+    data: data,
   );
-  checkError(res);
 }
 
 class UserDetailPage extends StatefulWidget {
@@ -117,7 +117,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
   Widget build(BuildContext context) {
     final translation = TimelineLocalizations.of(context).userDetail;
 
-    final user = UserManager().currentUser;
+    final user = UserManager().user;
     final editable = user.username == username || user.administrator;
 
     Widget content;
@@ -312,17 +312,14 @@ class _UserDetailPageState extends State<UserDetailPage> {
 Future updateUserDetail(String username, UserDetails details) async {
   assert(username != null);
   assert(username.isNotEmpty);
-  final res = await patch(
-      '$apiBaseUrl/users/$username/details?token=${UserManager().token}',
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        _nicknameKey: details.nickname,
-        _qqKey: details.qq,
-        _emailKey: details.email,
-        _phoneNumberKey: details.phoneNumber,
-        _descriptionKey: details.description,
-      }));
-  checkError(res);
+  await createDioWithToken()
+      .patch('$apiBaseUrl/users/$username/details', data: {
+    _nicknameKey: details.nickname,
+    _qqKey: details.qq,
+    _emailKey: details.email,
+    _phoneNumberKey: details.phoneNumber,
+    _descriptionKey: details.description,
+  });
 }
 
 class _UserDetailEditPage extends StatefulWidget {
@@ -426,8 +423,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
         createField(translation.email, _emailController),
         createField(translation.phoneNumber, _phoneNumberController),
         Expanded(
-          child: createField(
-              translation.description, _descriptionController,
+          child: createField(translation.description, _descriptionController,
               outlineBorder: true, expand: true),
         ),
       ],

@@ -7,13 +7,17 @@ import 'user_service.dart';
 class StartPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    UserManager().checkLastLogin().then((user) {
-      if (user != null)
+    UserManager().checkLastLogin().then((result) {
+      if (result == LastLoginResult.ok)
         router.navigateTo(context, '/home',
             replace: true, transition: TransitionType.fadeIn);
       else
         router.navigateTo(context, '/login',
             replace: true, transition: TransitionType.fadeIn);
+    }, onError: (_) {
+      //TODO: Prompt the error to user
+      router.navigateTo(context, '/login',
+          replace: true, transition: TransitionType.fadeIn);
     });
 
     return Scaffold(
