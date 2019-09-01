@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:timeline/setting_page.dart';
+
+import 'setting_page.dart';
+import 'user_detail.dart';
 
 @immutable
 class OperationDialogTranslation {
@@ -60,29 +62,6 @@ class LoginPageTranslation {
 }
 
 @immutable
-class UserDetailTranslation {
-  UserDetailTranslation({
-    @required this.username,
-    @required this.nickname,
-    @required this.qq,
-    @required this.email,
-    @required this.phoneNumber,
-    @required this.description,
-    @required this.notSet,
-    @required this.noDescriptionPlaceholder,
-  });
-
-  final String username;
-  final String nickname;
-  final String qq;
-  final String email;
-  final String phoneNumber;
-  final String description;
-  final String notSet;
-  final String noDescriptionPlaceholder;
-}
-
-@immutable
 class Translation {
   Translation({
     @required this.operationDialog,
@@ -136,6 +115,9 @@ Translation _createEnglishTranslation() {
       description: 'description',
       notSet: 'not set',
       noDescriptionPlaceholder: 'This person has not set a description.',
+      itemStateNotChange: 'This item is not changed.',
+      itemStateWillSet: 'This item has been modified.',
+      itemStateWillClear: 'This item will be cleared.',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: 'Account',
@@ -183,6 +165,9 @@ Translation _createChineseTranslation() {
       description: '个人说明',
       notSet: '未设置',
       noDescriptionPlaceholder: '这个人懒到没有设置个人说明。',
+      itemStateNotChange: '这一项未修改。',
+      itemStateWillSet: '这一项已修改。',
+      itemStateWillClear: '这一项将被清除。',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: '账号',

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui show instantiateImageCodec, Codec;
 
 import 'package:dio/dio.dart';
@@ -101,11 +102,11 @@ class _AvatarManager {
       } else {
         debugPrint('Get avatar responsed 200 but with no etag. So not cache.');
       }
-      return await ui.instantiateImageCodec(body);
+      return await ui.instantiateImageCodec(Uint8List.fromList(body));
     } else if (res.statusCode == 304) {
       debugPrint('Get avatar of $username responsed 304. So cache is used.');
-      return await ui.instantiateImageCodec(
-          await _getAvatarCacheFile(username).readAsBytes());
+      return await ui.instantiateImageCodec(Uint8List.fromList(
+          await _getAvatarCacheFile(username).readAsBytes()));
     } else {
       throw Exception('Unrecognized status code.');
     }

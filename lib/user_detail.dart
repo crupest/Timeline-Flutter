@@ -13,6 +13,36 @@ import 'drawer.dart';
 import 'i18n.dart';
 import 'http.dart';
 
+@immutable
+class UserDetailTranslation {
+  UserDetailTranslation({
+    @required this.username,
+    @required this.nickname,
+    @required this.qq,
+    @required this.email,
+    @required this.phoneNumber,
+    @required this.description,
+    @required this.notSet,
+    @required this.noDescriptionPlaceholder,
+    @required this.itemStateNotChange,
+    @required this.itemStateWillClear,
+    @required this.itemStateWillSet,
+  });
+
+  final String username;
+  final String nickname;
+  final String qq;
+  final String email;
+  final String phoneNumber;
+  final String description;
+  final String notSet;
+  final String noDescriptionPlaceholder;
+
+  final String itemStateNotChange;
+  final String itemStateWillSet;
+  final String itemStateWillClear;
+}
+
 class UserDetails {
   UserDetails({
     this.nickname,
@@ -75,6 +105,188 @@ Future putUserAvatar(String username, String mimeType, List<int> data) async {
     ),
     data: data,
   );
+}
+
+enum UserDetailItemEditState {
+  notChange,
+  willSet,
+  notValid,
+  willClear,
+}
+
+/// Feature:
+/// 1. display grey message that item not changed (initText == value)
+/// 2. display green message that item will be changed (initText != value && value.isNotEmpty)
+/// 3. display red message that item is not valid (validate failed)
+/// 4. display yellow message that item will be cleared (value.isEmpty && !initText.isNotEmpty)
+class UserDetailEditItemController extends ChangeNotifier {
+  UserDetailEditItemController({
+    @required this.initText,
+    @required this.validator,
+    @required this.errorMessageGenerator,
+  })  : assert(validator != null),
+        assert(errorMessageGenerator != null) {
+    _controller = TextEditingController(text: initText);
+    _state = UserDetailItemEditState.notChange;
+    _controller.addListener(() {
+      _calculateState(_controller.text);
+    });
+  }
+
+  final String initText;
+
+  final int Function(String value) validator;
+
+  final String Function(int errorCode) errorMessageGenerator;
+
+  TextEditingController _controller;
+
+  UserDetailItemEditState _state;
+
+  int _errorCode;
+
+  TextEditingController get controller => _controller;
+
+  UserDetailItemEditState get state => _state;
+
+  int get errorCode => _errorCode;
+
+  String get valueForResult {
+    final text = _controller.text;
+    return text.isEmpty ? null : text;
+  }
+
+  String get valueForRequest =>
+      _state == UserDetailItemEditState.notChange ? null : _controller.text;
+
+  void reset() {
+    _controller.text = initText ?? '';
+  }
+
+  @override
+  dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  _calculateState(String value) {
+    assert(value != null);
+
+    final isInitEmpty = initText == null || initText.isEmpty;
+
+    int validateValue() {
+      return validator(value);
+    }
+
+    if (value.isEmpty) {
+      if (isInitEmpty) {
+        _state = UserDetailItemEditState.notChange;
+        _errorCode = null;
+      } else {
+        _state = UserDetailItemEditState.willClear;
+        _errorCode = null;
+      }
+      notifyListeners();
+    } else {
+      if (value == initText) {
+        _state = UserDetailItemEditState.notChange;
+        _errorCode = null;
+        notifyListeners();
+      } else {
+        int errorCode = validateValue();
+        if (errorCode != _errorCode ||
+            _state == UserDetailItemEditState.notChange ||
+            _state == UserDetailItemEditState.willClear) {
+          _state = errorCode != null
+              ? UserDetailItemEditState.notValid
+              : UserDetailItemEditState.willSet;
+          _errorCode = errorCode;
+          notifyListeners();
+        }
+      }
+    }
+  }
+
+  static const _colorMap = {
+    UserDetailItemEditState.notChange: Colors.grey,
+    UserDetailItemEditState.willSet: Colors.green,
+    UserDetailItemEditState.notValid: Colors.red,
+    UserDetailItemEditState.willClear: Colors.yellow,
+  };
+
+  Color get suggestedColor => _colorMap[_state];
+
+  String getTranslatedMessage(BuildContext context) {
+    final translation = TimelineLocalizations.of(context).userDetail;
+    switch (state) {
+      case UserDetailItemEditState.notChange:
+        return translation.itemStateNotChange;
+      case UserDetailItemEditState.willSet:
+        return translation.itemStateWillSet;
+      case UserDetailItemEditState.willClear:
+        return translation.itemStateWillClear;
+      case UserDetailItemEditState.notValid:
+        return errorMessageGenerator(errorCode);
+      default:
+        return null;
+    }
+  }
+}
+
+class UserDetailEditSingleLineItem extends StatefulWidget {
+  UserDetailEditSingleLineItem({
+    @required this.label,
+    @required this.controller,
+    Key key,
+  })  : assert(label != null),
+        assert(controller != null),
+        super(key: key);
+
+  final String label;
+
+  final UserDetailEditItemController controller;
+
+  @override
+  _UserDetailEditSingleLineItemState createState() =>
+      _UserDetailEditSingleLineItemState();
+}
+
+class _UserDetailEditSingleLineItemState
+    extends State<UserDetailEditSingleLineItem> {
+  UserDetailEditItemController get _controller => widget.controller;
+
+  void Function() _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _listener = () {
+      setState(() {});
+    };
+    _controller.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isError = _controller.state == UserDetailItemEditState.notValid;
+    final message = _controller.getTranslatedMessage(context);
+    return TextField(
+      controller: _controller.controller,
+      decoration: InputDecoration(
+        isDense: true,
+        labelText: widget.label,
+        errorText: isError ? message : null,
+        helperText: !isError ? message : null,
+        helperStyle: TextStyle(color: _controller.suggestedColor),
+      ),
+    );
+  }
 }
 
 class UserDetailPage extends StatefulWidget {
@@ -336,7 +548,7 @@ class _UserDetailEditPage extends StatefulWidget {
 }
 
 class _UserDetailEditPageState extends State<_UserDetailEditPage> {
-  final _nicknameController = TextEditingController();
+  UserDetailEditItemController _nicknameController;
   final _qqController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneNumberController = TextEditingController();
@@ -348,8 +560,13 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
 
     final oldDetails = widget.oldDetails;
 
+    _nicknameController = UserDetailEditItemController(
+      initText: oldDetails.nickname,
+      validator: (_) => null,
+      errorMessageGenerator: (_) => null,
+    );
+
     String coerce(String raw) => raw == null ? '' : raw;
-    _nicknameController.text = coerce(oldDetails.nickname);
     _qqController.text = coerce(oldDetails.qq);
     _emailController.text = coerce(oldDetails.email);
     _phoneNumberController.text = coerce(oldDetails.phoneNumber);
@@ -418,7 +635,10 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
             ],
           ),
         ),
-        createField(translation.nickname, _nicknameController),
+        UserDetailEditSingleLineItem(
+          controller: _nicknameController,
+          label: translation.nickname,
+        ),
         createField(translation.qq, _qqController),
         createField(translation.email, _emailController),
         createField(translation.phoneNumber, _phoneNumberController),
@@ -449,7 +669,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
                       await updateUserDetail(
                         widget.username,
                         UserDetails(
-                          nickname: _nicknameController.text,
+                          nickname: _nicknameController.valueForRequest,
                           qq: _qqController.text,
                           email: _emailController.text,
                           phoneNumber: _phoneNumberController.text,
@@ -467,7 +687,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
 
                   Navigator.of(context).pop(
                     UserDetails(
-                      nickname: coerce(_nicknameController.text),
+                      nickname: _nicknameController.valueForResult,
                       qq: coerce(_qqController.text),
                       email: coerce(_emailController.text),
                       phoneNumber: coerce(_phoneNumberController.text),
