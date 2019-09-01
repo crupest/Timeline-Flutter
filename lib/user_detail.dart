@@ -233,26 +233,28 @@ class UserDetailEditItemController extends ChangeNotifier {
   }
 }
 
-class UserDetailEditSingleLineItem extends StatefulWidget {
-  UserDetailEditSingleLineItem({
+class UserDetailEditItem extends StatefulWidget {
+  UserDetailEditItem({
     @required this.label,
     @required this.controller,
+    this.multiline = false,
     Key key,
   })  : assert(label != null),
         assert(controller != null),
+        assert(multiline != null),
         super(key: key);
 
   final String label;
 
   final UserDetailEditItemController controller;
 
+  final bool multiline;
+
   @override
-  _UserDetailEditSingleLineItemState createState() =>
-      _UserDetailEditSingleLineItemState();
+  _UserDetailEditItemState createState() => _UserDetailEditItemState();
 }
 
-class _UserDetailEditSingleLineItemState
-    extends State<UserDetailEditSingleLineItem> {
+class _UserDetailEditItemState extends State<UserDetailEditItem> {
   UserDetailEditItemController get _controller => widget.controller;
 
   void Function() _listener;
@@ -274,16 +276,24 @@ class _UserDetailEditSingleLineItemState
 
   @override
   Widget build(BuildContext context) {
+    final multiline = widget.multiline;
+
     final isError = _controller.state == UserDetailItemEditState.notValid;
     final message = _controller.getTranslatedMessage(context);
-    return TextField(
-      controller: _controller.controller,
-      decoration: InputDecoration(
-        isDense: true,
-        labelText: widget.label,
-        errorText: isError ? message : null,
-        helperText: !isError ? message : null,
-        helperStyle: TextStyle(color: _controller.suggestedColor),
+    return Container(
+      padding: EdgeInsets.all(8),
+      child: TextField(
+        controller: _controller.controller,
+        decoration: InputDecoration(
+          isDense: multiline ? false : true,
+          labelText: widget.label,
+          errorText: isError ? message : null,
+          helperText: !isError ? message : null,
+          helperStyle: TextStyle(color: _controller.suggestedColor),
+          border: multiline ? OutlineInputBorder() : null,
+        ),
+        maxLines: multiline ? 10 : 1,
+        textAlignVertical: multiline ? TextAlignVertical.top : null,
       ),
     );
   }
@@ -549,10 +559,10 @@ class _UserDetailEditPage extends StatefulWidget {
 
 class _UserDetailEditPageState extends State<_UserDetailEditPage> {
   UserDetailEditItemController _nicknameController;
-  final _qqController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _descriptionController = TextEditingController();
+  UserDetailEditItemController _qqController;
+  UserDetailEditItemController _emailController;
+  UserDetailEditItemController _phoneNumberController;
+  UserDetailEditItemController _descriptionController;
 
   @override
   void initState() {
@@ -560,17 +570,36 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
 
     final oldDetails = widget.oldDetails;
 
+    //TODO: implement all the validators
+
     _nicknameController = UserDetailEditItemController(
       initText: oldDetails.nickname,
       validator: (_) => null,
       errorMessageGenerator: (_) => null,
     );
 
-    String coerce(String raw) => raw == null ? '' : raw;
-    _qqController.text = coerce(oldDetails.qq);
-    _emailController.text = coerce(oldDetails.email);
-    _phoneNumberController.text = coerce(oldDetails.phoneNumber);
-    _descriptionController.text = coerce(oldDetails.description);
+    _qqController = UserDetailEditItemController(
+      initText: oldDetails.qq,
+      validator: (_) => null,
+      errorMessageGenerator: (_) => null,
+    );
+
+    _emailController = UserDetailEditItemController(
+      initText: oldDetails.email,
+      validator: (_) => null,
+      errorMessageGenerator: (_) => null,
+    );
+    _phoneNumberController = UserDetailEditItemController(
+      initText: oldDetails.phoneNumber,
+      validator: (_) => null,
+      errorMessageGenerator: (_) => null,
+    );
+
+    _descriptionController = UserDetailEditItemController(
+      initText: oldDetails.description,
+      validator: (_) => null,
+      errorMessageGenerator: (_) => null,
+    );
   }
 
   @override
@@ -587,30 +616,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
   Widget build(BuildContext context) {
     final translation = TimelineLocalizations.of(context).userDetail;
 
-    Widget content = Container();
-
-    Widget createField(
-      String name,
-      TextEditingController controller, {
-      bool outlineBorder = false,
-      bool expand = false,
-    }) {
-      return Container(
-        padding: EdgeInsets.all(5),
-        child: TextField(
-          controller: controller,
-          maxLines: expand ? null : 1,
-          expands: expand,
-          textAlignVertical: expand ? TextAlignVertical.top : null,
-          decoration: InputDecoration(
-            labelText: name,
-            border: outlineBorder ? OutlineInputBorder() : null,
-          ),
-        ),
-      );
-    }
-
-    content = Column(
+    Widget body = ListView(
       children: <Widget>[
         Container(
           padding: EdgeInsets.all(5),
@@ -635,16 +641,26 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
             ],
           ),
         ),
-        UserDetailEditSingleLineItem(
+        UserDetailEditItem(
           controller: _nicknameController,
           label: translation.nickname,
         ),
-        createField(translation.qq, _qqController),
-        createField(translation.email, _emailController),
-        createField(translation.phoneNumber, _phoneNumberController),
-        Expanded(
-          child: createField(translation.description, _descriptionController,
-              outlineBorder: true, expand: true),
+        UserDetailEditItem(
+          controller: _qqController,
+          label: translation.qq,
+        ),
+        UserDetailEditItem(
+          controller: _emailController,
+          label: translation.email,
+        ),
+        UserDetailEditItem(
+          controller: _phoneNumberController,
+          label: translation.phoneNumber,
+        ),
+        UserDetailEditItem(
+          controller: _descriptionController,
+          label: translation.description,
+          multiline: true,
         ),
       ],
     );
@@ -670,10 +686,10 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
                         widget.username,
                         UserDetails(
                           nickname: _nicknameController.valueForRequest,
-                          qq: _qqController.text,
-                          email: _emailController.text,
-                          phoneNumber: _phoneNumberController.text,
-                          description: _descriptionController.text,
+                          qq: _qqController.valueForRequest,
+                          email: _emailController.valueForRequest,
+                          phoneNumber: _phoneNumberController.valueForRequest,
+                          description: _descriptionController.valueForRequest,
                         ),
                       );
                       success = true;
@@ -683,15 +699,13 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
                 barrierDismissible: false,
               ).then((_) {
                 if (success == true) {
-                  String coerce(String raw) => raw.isEmpty ? null : raw;
-
                   Navigator.of(context).pop(
                     UserDetails(
                       nickname: _nicknameController.valueForResult,
-                      qq: coerce(_qqController.text),
-                      email: coerce(_emailController.text),
-                      phoneNumber: coerce(_phoneNumberController.text),
-                      description: coerce(_descriptionController.text),
+                      qq: _qqController.valueForResult,
+                      email: _emailController.valueForResult,
+                      phoneNumber: _phoneNumberController.valueForResult,
+                      description: _descriptionController.valueForResult,
                     ),
                   );
                 }
@@ -700,7 +714,7 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
           )
         ],
       ),
-      body: content,
+      body: body,
     );
   }
 }
