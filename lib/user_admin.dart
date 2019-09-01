@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import 'user_service.dart';
-import 'operation_dialog.dart';
+import 'dialog.dart';
 import 'http.dart';
 
 //TODO: translation
@@ -356,7 +356,6 @@ class _ChangeUsernameDialogState extends State<_ChangeUsernameDialog> {
   @override
   Widget build(BuildContext context) {
     return OperationDialog.dangerous(
-      context,
       subtitle: Text('You are changing username for ${widget.username}.'),
       inputContent: TextField(
         decoration: InputDecoration(

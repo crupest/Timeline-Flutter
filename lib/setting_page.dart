@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'i18n.dart';
-import 'operation_dialog.dart';
+import 'dialog.dart';
 import 'user_service.dart';
 
 @immutable
@@ -113,8 +113,7 @@ class SettingsPage extends StatelessWidget {
                     context: context,
                     builder: (context) {
                       return OperationDialog.confirm(
-                        context,
-                        subtitle: Text(TimelineLocalizations.of(context)
+                        inputContent: Text(TimelineLocalizations.of(context)
                             .settingsPage
                             .messageConfirmLogout),
                         operationFunction: () async {

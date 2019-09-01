@@ -2,6 +2,75 @@ import 'package:flutter/material.dart';
 
 import 'i18n.dart';
 
+@immutable
+class DialogTranslation {
+  DialogTranslation({
+    @required this.errorTitle,
+    @required this.errorOk,
+  });
+
+  final String errorTitle;
+  final String errorOk;
+}
+
+@immutable
+class OperationDialogTranslation {
+  OperationDialogTranslation({
+    @required this.confirmTitle,
+    @required this.createTitle,
+    @required this.dangerousTitle,
+    @required this.cancel,
+    @required this.confirm,
+    @required this.ok,
+    @required this.operationSucceeded,
+  });
+
+  final String confirmTitle;
+  final String createTitle;
+  final String dangerousTitle;
+  final String cancel;
+  final String confirm;
+  final String ok;
+  final String operationSucceeded;
+}
+
+Future<T> showErrorDialog<T>(BuildContext context,
+    String Function(BuildContext context) messageBuilder) {
+  return showDialog(
+    context: context,
+    builder: (context) {
+      return ErrorDialog(messageBuilder);
+    },
+  );
+}
+
+class ErrorDialog extends StatelessWidget {
+  ErrorDialog(this.messageBuilder);
+
+  final String Function(BuildContext context) messageBuilder;
+
+  @override
+  Widget build(BuildContext context) {
+    final translation = TimelineLocalizations.of(context).dialog;
+
+    return AlertDialog(
+      title: Text(
+        translation.errorTitle,
+        style: TextStyle(color: Colors.red),
+      ),
+      content: Text(messageBuilder(context)),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+          child: Text(translation.errorOk),
+        )
+      ],
+    );
+  }
+}
+
 enum OperationStep { input, progress, success, error }
 typedef Future OperationFunction();
 
@@ -17,7 +86,7 @@ typedef Future OperationFunction();
 /// a bool value as false, change it to true in operationFunction, and subscribe the future returned
 /// by showDialog, check the bool value in subscription function and do anything you like.
 class OperationDialog extends StatefulWidget {
-  final Widget title;
+  final Widget Function(BuildContext) _titleBuilder;
 
   // a title that will show all the time.
   final Widget subtitle;
@@ -34,20 +103,21 @@ class OperationDialog extends StatefulWidget {
   /// Default one is show error.toString() with red color.
   final Widget Function(BuildContext, dynamic) errorContentBuilder;
 
-  OperationDialog({
-    @required this.title,
+  OperationDialog._({
+    @required Widget Function(BuildContext) titleBuilder,
     @required this.operationFunction,
     this.subtitle,
     this.inputContent,
     this.successContentBuilder,
     this.errorContentBuilder,
     Key key,
-  })  : assert(title != null),
+  })  : assert(titleBuilder != null),
         assert(operationFunction != null),
+        _titleBuilder = titleBuilder,
         super(key: key);
 
-  factory OperationDialog.confirm(
-    BuildContext context, {
+  factory OperationDialog({
+    @required Widget title,
     @required OperationFunction operationFunction,
     Widget subtitle,
     Widget inputContent,
@@ -55,12 +125,29 @@ class OperationDialog extends StatefulWidget {
     Widget Function(BuildContext, dynamic) errorContentBuilder,
     Key key,
   }) {
-    return OperationDialog(
-      title: Text(
+    return OperationDialog._(
+      titleBuilder: (_) => title,
+      subtitle: subtitle,
+      operationFunction: operationFunction,
+      inputContent: inputContent,
+      successContentBuilder: successContentBuilder,
+      errorContentBuilder: errorContentBuilder,
+      key: key,
+    );
+  }
+
+  factory OperationDialog.confirm({
+    @required OperationFunction operationFunction,
+    Widget subtitle,
+    Widget inputContent,
+    Widget Function(BuildContext, dynamic) successContentBuilder,
+    Widget Function(BuildContext, dynamic) errorContentBuilder,
+    Key key,
+  }) {
+    return OperationDialog._(
+      titleBuilder: (context) => Text(
         TimelineLocalizations.of(context).operationDialog.confirmTitle,
-        style: Theme.of(context).primaryTextTheme.title.copyWith(
-              color: Colors.blue,
-            ),
+        style: TextStyle(color: Colors.blue),
       ),
       subtitle: subtitle,
       operationFunction: operationFunction,
@@ -71,8 +158,7 @@ class OperationDialog extends StatefulWidget {
     );
   }
 
-  factory OperationDialog.create(
-    BuildContext context, {
+  factory OperationDialog.create({
     @required OperationFunction operationFunction,
     Widget subtitle,
     Widget inputContent,
@@ -80,12 +166,10 @@ class OperationDialog extends StatefulWidget {
     Widget Function(BuildContext, dynamic) errorContentBuilder,
     Key key,
   }) {
-    return OperationDialog(
-      title: Text(
+    return OperationDialog._(
+      titleBuilder: (context) => Text(
         TimelineLocalizations.of(context).operationDialog.createTitle,
-        style: Theme.of(context).primaryTextTheme.title.copyWith(
-              color: Colors.green,
-            ),
+        style: TextStyle(color: Colors.green),
       ),
       subtitle: subtitle,
       operationFunction: operationFunction,
@@ -96,8 +180,7 @@ class OperationDialog extends StatefulWidget {
     );
   }
 
-  factory OperationDialog.dangerous(
-    BuildContext context, {
+  factory OperationDialog.dangerous({
     @required OperationFunction operationFunction,
     Widget subtitle,
     Widget inputContent,
@@ -105,12 +188,10 @@ class OperationDialog extends StatefulWidget {
     Widget Function(BuildContext, dynamic) errorContentBuilder,
     Key key,
   }) {
-    return OperationDialog(
-      title: Text(
+    return OperationDialog._(
+      titleBuilder: (context) => Text(
         TimelineLocalizations.of(context).operationDialog.dangerousTitle,
-        style: Theme.of(context).primaryTextTheme.title.copyWith(
-              color: Colors.red,
-            ),
+        style: TextStyle(color: Colors.red),
       ),
       subtitle: subtitle,
       operationFunction: operationFunction,
@@ -173,8 +254,7 @@ class OperationDialogState extends State<OperationDialog> {
         content.add(
           Padding(
             padding: EdgeInsets.only(top: 3),
-            child:
-            Row(
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: <Widget>[
                 FlatButton(
@@ -224,10 +304,7 @@ class OperationDialogState extends State<OperationDialog> {
           c = Center(
             child: Text(
               translation.operationSucceeded,
-              style: Theme.of(context)
-                  .textTheme
-                  .subhead
-                  .copyWith(color: Colors.green),
+              style: TextStyle(color: Colors.green),
             ),
           );
         }
@@ -244,10 +321,7 @@ class OperationDialogState extends State<OperationDialog> {
           c = Center(
             child: Text(
               _resultObject.toString(),
-              style: Theme.of(context)
-                  .textTheme
-                  .subhead
-                  .copyWith(color: Colors.red),
+              style: TextStyle(color: Colors.red),
             ),
           );
         }
@@ -258,7 +332,7 @@ class OperationDialogState extends State<OperationDialog> {
     }
 
     return AlertDialog(
-      title: widget.title,
+      title: widget._titleBuilder(context),
       titlePadding: EdgeInsets.fromLTRB(20, 20, 20, 5),
       contentPadding: EdgeInsets.fromLTRB(20, 5, 20, 20),
       content: IntrinsicHeight(

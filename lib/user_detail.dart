@@ -7,7 +7,7 @@ import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:timeline/view_photo.dart';
 
 import 'avatar.dart';
-import 'operation_dialog.dart';
+import 'dialog.dart';
 import 'user_service.dart';
 import 'drawer.dart';
 import 'i18n.dart';
@@ -27,6 +27,9 @@ class UserDetailTranslation {
     @required this.itemStateNotChange,
     @required this.itemStateWillClear,
     @required this.itemStateWillSet,
+    @required this.saveChange,
+    @required this.guessFormatFailure,
+    @required this.uploadAvatar,
   });
 
   final String username;
@@ -41,6 +44,11 @@ class UserDetailTranslation {
   final String itemStateNotChange;
   final String itemStateWillSet;
   final String itemStateWillClear;
+
+  final String saveChange;
+
+  final String guessFormatFailure;
+  final String uploadAvatar;
 }
 
 class UserDetails {
@@ -281,7 +289,7 @@ class _UserDetailEditItemState extends State<UserDetailEditItem> {
     final isError = _controller.state == UserDetailItemEditState.notValid;
     final message = _controller.getTranslatedMessage(context);
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
       child: TextField(
         controller: _controller.controller,
         decoration: InputDecoration(
@@ -422,32 +430,22 @@ class _UserDetailPageState extends State<UserDetailPage> {
 
                     final mimeType = _guessMimeType(croppedImage.path);
                     if (mimeType == null) {
-                      showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: Text('Error!'),
-                              content: Text(
-                                  'Failed to guess the format of the image.'),
-                              actions: <Widget>[
-                                FlatButton(
-                                  child: Text('OK'),
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                )
-                              ],
-                            );
-                          });
+                      showErrorDialog(
+                        context,
+                        (context) => TimelineLocalizations.of(context)
+                            .userDetail
+                            .guessFormatFailure,
+                      );
                       return;
                     }
 
                     showDialog(
                       context: context,
                       builder: (context) {
-                        return OperationDialog(
-                          title: Text('Confirm!'),
-                          subtitle: Text('You are uploading a new avatar.'),
+                        return OperationDialog.confirm(
+                          inputContent: Text(TimelineLocalizations.of(context)
+                              .userDetail
+                              .uploadAvatar),
                           operationFunction: () async {
                             await putUserAvatar(username, mimeType,
                                 await croppedImage.readAsBytes());
@@ -678,9 +676,9 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
                 context: context,
                 builder: (context) {
                   return OperationDialog.confirm(
-                    context,
-                    subtitle: Text(
-                        'Are you sure to change your informantion?'), // TODO: translation
+                    inputContent: Text(TimelineLocalizations.of(context)
+                        .userDetail
+                        .saveChange),
                     operationFunction: () async {
                       await updateUserDetail(
                         widget.username,

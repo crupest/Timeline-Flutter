@@ -1,29 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
+import 'dialog.dart';
 import 'setting_page.dart';
 import 'user_detail.dart';
-
-@immutable
-class OperationDialogTranslation {
-  OperationDialogTranslation({
-    @required this.confirmTitle,
-    @required this.createTitle,
-    @required this.dangerousTitle,
-    @required this.cancel,
-    @required this.confirm,
-    @required this.ok,
-    @required this.operationSucceeded,
-  });
-
-  final String confirmTitle;
-  final String createTitle;
-  final String dangerousTitle;
-  final String cancel;
-  final String confirm;
-  final String ok;
-  final String operationSucceeded;
-}
 
 @immutable
 class DrawerTranslation {
@@ -64,6 +44,7 @@ class LoginPageTranslation {
 @immutable
 class Translation {
   Translation({
+    @required this.dialog,
     @required this.operationDialog,
     @required this.drawer,
     @required this.loginPage,
@@ -71,6 +52,7 @@ class Translation {
     @required this.settingsPage,
   });
 
+  final DialogTranslation dialog;
   final OperationDialogTranslation operationDialog;
   final DrawerTranslation drawer;
   final LoginPageTranslation loginPage;
@@ -82,6 +64,10 @@ Translation _createEnglishTranslation() {
   const username = 'username';
 
   return Translation(
+    dialog: DialogTranslation(
+      errorTitle: 'Error',
+      errorOk: 'Ok',
+    ),
     operationDialog: OperationDialogTranslation(
       confirmTitle: 'Confirm',
       createTitle: 'Create',
@@ -118,6 +104,9 @@ Translation _createEnglishTranslation() {
       itemStateNotChange: 'This item is not changed.',
       itemStateWillSet: 'This item has been modified.',
       itemStateWillClear: 'This item will be cleared.',
+      saveChange: 'Are you sure to save the changes?',
+      guessFormatFailure: 'Failed to guess the format of the picture.',
+      uploadAvatar: 'Are you sure to upload the new avatar?',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: 'Account',
@@ -132,6 +121,10 @@ Translation _createChineseTranslation() {
   const username = '用户名';
 
   return Translation(
+    dialog: DialogTranslation(
+      errorTitle: '错误',
+      errorOk: '知道了',
+    ),
     operationDialog: OperationDialogTranslation(
       confirmTitle: '确认',
       createTitle: '创建',
@@ -168,6 +161,9 @@ Translation _createChineseTranslation() {
       itemStateNotChange: '这一项未修改。',
       itemStateWillSet: '这一项已修改。',
       itemStateWillClear: '这一项将被清除。',
+      saveChange: '你确定要保存修改吗？',
+      guessFormatFailure: '判断图片的格式失败。',
+      uploadAvatar: '确定要上传新的头像吗？',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: '账号',
