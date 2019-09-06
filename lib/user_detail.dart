@@ -387,29 +387,13 @@ class _UserDetailPageState extends State<UserDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  name,
-                  style: Theme.of(context).primaryTextTheme.body1.copyWith(
-                        color: Colors.blue,
-                      ),
-                ),
+                Text(name, style: TextStyle(color: Colors.blue)),
                 Padding(
                     padding: EdgeInsets.only(left: 6),
                     child: value != null
-                        ? Text(
-                            value,
-                            style: Theme.of(context)
-                                .primaryTextTheme
-                                .title
-                                .copyWith(color: Colors.black),
-                          )
-                        : Text(
-                            placeHoler,
-                            style: Theme.of(context)
-                                .primaryTextTheme
-                                .body1
-                                .copyWith(color: Colors.grey),
-                          )),
+                        ? Text(value, style: TextStyle(color: Colors.black))
+                        : Text(placeHoler,
+                            style: TextStyle(color: Colors.grey))),
               ],
             ),
           );
@@ -479,37 +463,39 @@ class _UserDetailPageState extends State<UserDetailPage> {
           );
         }
 
-        content = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                Expanded(
-                  flex: 4,
-                  child: avatarArea,
-                ),
-                Expanded(
-                  flex: 5,
-                  child: Center(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        createItem(translation.username, username, null),
-                        createItem(translation.nickname, _details.nickname,
-                            translation.notSet),
-                      ],
+        content = Padding(
+          padding: EdgeInsets.symmetric(horizontal: 10),
+          child: ListView(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    flex: 4,
+                    child: avatarArea,
+                  ),
+                  Expanded(
+                    flex: 5,
+                    child: Center(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          createItem(translation.username, username, null),
+                          createItem(translation.nickname, _details.nickname,
+                              translation.notSet),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            createItem(translation.qq, _details.qq, translation.notSet),
-            createItem(translation.email, _details.email, translation.notSet),
-            createItem(translation.phoneNumber, _details.phoneNumber,
-                translation.notSet),
-            createItem(translation.description, _details.description,
-                translation.noDescriptionPlaceholder),
-          ],
+                ],
+              ),
+              createItem(translation.qq, _details.qq, translation.notSet),
+              createItem(translation.email, _details.email, translation.notSet),
+              createItem(translation.phoneNumber, _details.phoneNumber,
+                  translation.notSet),
+              createItem(translation.description, _details.description,
+                  translation.noDescriptionPlaceholder),
+            ],
+          ),
         );
       }
     }
