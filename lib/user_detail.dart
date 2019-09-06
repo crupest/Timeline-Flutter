@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:image/image.dart';
+import 'package:image/image.dart' as image;
 import 'package:image_cropper/image_cropper.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:timeline/view_photo.dart';
@@ -32,6 +32,11 @@ class UserDetailTranslation {
     @required this.saveChange,
     @required this.guessFormatFailure,
     @required this.uploadAvatar,
+    @required this.requirementNickname,
+    @required this.requirementQq,
+    @required this.requirementEmail,
+    @required this.requirementPhoneNumber,
+    @required this.errorEditNotValid,
   });
 
   final String username;
@@ -51,6 +56,12 @@ class UserDetailTranslation {
 
   final String guessFormatFailure;
   final String uploadAvatar;
+
+  final String requirementNickname;
+  final String requirementQq;
+  final String requirementEmail;
+  final String requirementPhoneNumber;
+  final String errorEditNotValid;
 }
 
 class UserDetails {
@@ -92,12 +103,12 @@ Future<UserDetails> fetchUserDetail(String username) async {
 
 String _getImageMimeType(List<int> data) {
   final d = Uint8List.fromList(data);
-  final decoder = findDecoderForData(d);
+  final decoder = image.findDecoderForData(d);
 
-  if (decoder is PngDecoder) return 'image/png';
-  if (decoder is JpegDecoder) return 'image/jpeg';
-  if (decoder is GifDecoder) return 'image/gif';
-  if (decoder is WebPDecoder) return 'image/webp';
+  if (decoder is image.PngDecoder) return 'image/png';
+  if (decoder is image.JpegDecoder) return 'image/jpeg';
+  if (decoder is image.GifDecoder) return 'image/gif';
+  if (decoder is image.WebPDecoder) return 'image/webp';
   return null;
 }
 
@@ -148,7 +159,8 @@ class UserDetailEditItemController extends ChangeNotifier {
 
   final int Function(String value) validator;
 
-  final String Function(int errorCode) errorMessageGenerator;
+  final String Function(BuildContext context, int errorCode)
+      errorMessageGenerator;
 
   TextEditingController _controller;
 
@@ -161,6 +173,8 @@ class UserDetailEditItemController extends ChangeNotifier {
   UserDetailItemEditState get state => _state;
 
   int get errorCode => _errorCode;
+
+  bool get isNoError => _state != UserDetailItemEditState.notValid;
 
   String get valueForResult {
     final text = _controller.text;
@@ -237,7 +251,7 @@ class UserDetailEditItemController extends ChangeNotifier {
       case UserDetailItemEditState.willClear:
         return translation.itemStateWillClear;
       case UserDetailItemEditState.notValid:
-        return errorMessageGenerator(errorCode);
+        return errorMessageGenerator(context, errorCode);
       default:
         return null;
     }
@@ -559,6 +573,21 @@ class _UserDetailEditPage extends StatefulWidget {
   _UserDetailEditPageState createState() => _UserDetailEditPageState();
 }
 
+bool _isDigit(String value, int index) {
+  return value[index] == "0" ||
+      value[index] == "1" ||
+      value[index] == "2" ||
+      value[index] == "3" ||
+      value[index] == "4" ||
+      value[index] == "5" ||
+      value[index] == "6" ||
+      value[index] == "7" ||
+      value[index] == "8" ||
+      value[index] == "9";
+}
+
+final _emailReg = RegExp('^[-_.a-zA-Z0-9]+@([-a-zA-Z0-9]+\\.)+[a-z]{2,4}\$');
+
 class _UserDetailEditPageState extends State<_UserDetailEditPage> {
   UserDetailEditItemController _nicknameController;
   UserDetailEditItemController _qqController;
@@ -566,42 +595,75 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
   UserDetailEditItemController _phoneNumberController;
   UserDetailEditItemController _descriptionController;
 
+  List<UserDetailEditItemController> _controllers;
+
   @override
   void initState() {
     super.initState();
 
     final oldDetails = widget.oldDetails;
 
-    //TODO: implement all the validators
-
     _nicknameController = UserDetailEditItemController(
       initText: oldDetails.nickname,
-      validator: (_) => null,
-      errorMessageGenerator: (_) => null,
+      validator: (value) {
+        if (value.length > 10) return 1;
+        return null;
+      },
+      errorMessageGenerator: (context, _) =>
+          TimelineLocalizations.of(context).userDetail.requirementNickname,
     );
 
     _qqController = UserDetailEditItemController(
       initText: oldDetails.qq,
-      validator: (_) => null,
-      errorMessageGenerator: (_) => null,
+      validator: (value) {
+        if (value.length < 5) return 1;
+        if (value.length > 11) return 2;
+        for (int i = 0; i < value.length; i++) {
+          if (!_isDigit(value, i)) return 3;
+        }
+        return null;
+      },
+      errorMessageGenerator: (context, _) =>
+          TimelineLocalizations.of(context).userDetail.requirementQq,
     );
 
     _emailController = UserDetailEditItemController(
       initText: oldDetails.email,
-      validator: (_) => null,
-      errorMessageGenerator: (_) => null,
+      validator: (value) {
+        if (value.length > 50) return 1;
+        if (!_emailReg.hasMatch(value)) return 2;
+        return null;
+      },
+      errorMessageGenerator: (context, _) =>
+          TimelineLocalizations.of(context).userDetail.requirementEmail,
     );
+
     _phoneNumberController = UserDetailEditItemController(
       initText: oldDetails.phoneNumber,
-      validator: (_) => null,
-      errorMessageGenerator: (_) => null,
+      validator: (value) {
+        if (value.length > 14) return 1;
+        for (int i = 0; i < value.length; i++) {
+          if (!_isDigit(value, i)) return 2;
+        }
+        return null;
+      },
+      errorMessageGenerator: (context, _) =>
+          TimelineLocalizations.of(context).userDetail.requirementPhoneNumber,
     );
 
     _descriptionController = UserDetailEditItemController(
       initText: oldDetails.description,
       validator: (_) => null,
-      errorMessageGenerator: (_) => null,
+      errorMessageGenerator: (_, _a) => null,
     );
+
+    _controllers = [
+      _nicknameController,
+      _qqController,
+      _emailController,
+      _phoneNumberController,
+      _descriptionController,
+    ];
   }
 
   @override
@@ -675,6 +737,22 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
             icon: Icon(Icons.check),
             onPressed: () {
               bool success = false;
+
+              bool check() {
+                for (final controller in _controllers)
+                  if (!controller.isNoError) return false;
+                return true;
+              }
+
+              if (!check()) {
+                showErrorDialog(
+                  context,
+                  (context) => TimelineLocalizations.of(context)
+                      .userDetail
+                      .errorEditNotValid,
+                );
+                return;
+              }
 
               showDialog(
                 context: context,

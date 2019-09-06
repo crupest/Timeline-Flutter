@@ -107,6 +107,14 @@ Translation _createEnglishTranslation() {
       saveChange: 'Are you sure to save the changes?',
       guessFormatFailure: 'Failed to guess the format of the picture.',
       uploadAvatar: 'Are you sure to upload the new avatar?',
+      requirementNickname: 'Nickname can\'t have more than 10 charaters',
+      requirementQq:
+          'The length of QQ must be between 5 and 11 and it can only have digit.',
+      requirementEmail:
+          'Email address must be valid and not longer than 50 characters.',
+      requirementPhoneNumber:
+          'Phone number must be not longer than 14 and can only have digit.',
+      errorEditNotValid: 'Some items have invalid input.',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: 'Account',
@@ -164,6 +172,11 @@ Translation _createChineseTranslation() {
       saveChange: '你确定要保存修改吗？',
       guessFormatFailure: '判断图片的格式失败。',
       uploadAvatar: '确定要上传新的头像吗？',
+      requirementNickname: '昵称不能超过10个字符。',
+      requirementQq: 'QQ的长度必须为5~11，且只能包含数字。',
+      requirementEmail: '邮箱必须有效且长度不超过50',
+      requirementPhoneNumber: '电话号码长度不能超过14，且只能含有数字。',
+      errorEditNotValid: '有错误的项目没修正。',
     ),
     settingsPage: SettingsPageTranslation(
       headerAccount: '账号',
