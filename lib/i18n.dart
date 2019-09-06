@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import 'dialog.dart';
-import 'setting_page.dart';
+import 'setting.dart';
 import 'user_detail.dart';
 
 @immutable

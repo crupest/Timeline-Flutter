@@ -1,11 +1,11 @@
 import 'package:fluro/fluro.dart';
-import 'package:timeline/setting_page.dart';
 
 import 'administration.dart';
 import 'home.dart';
 import 'user_detail.dart';
 import 'login.dart';
 import 'start.dart';
+import 'setting.dart';
 
 final router = Router();
 
