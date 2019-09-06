@@ -49,7 +49,12 @@ class MyDrawer extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Expanded(
-          child: Avatar(user.username),
+          child: Avatar(
+            user.username,
+            onPressed: () {
+              Navigator.of(context).popAndPushNamed('/users/${user.username}/details');
+            },
+          ),
         ),
         Text(user.username),
       ],
