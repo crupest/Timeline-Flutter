@@ -688,18 +688,13 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
             children: <Widget>[
               Text(
                 translation.username,
-                style: Theme.of(context).primaryTextTheme.body1.copyWith(
-                      color: Colors.blue,
-                    ),
+                style: TextStyle(color: Colors.blue),
               ),
               Padding(
                 padding: EdgeInsets.only(left: 6),
                 child: Text(
                   widget.username,
-                  style: Theme.of(context)
-                      .primaryTextTheme
-                      .title
-                      .copyWith(color: Colors.black),
+                  style: TextStyle(color: Colors.black),
                 ),
               ),
             ],
@@ -721,11 +716,14 @@ class _UserDetailEditPageState extends State<_UserDetailEditPage> {
           controller: _phoneNumberController,
           label: translation.phoneNumber,
         ),
-        UserDetailEditItem(
-          controller: _descriptionController,
-          label: translation.description,
-          multiline: true,
-        ),
+        Padding(
+          padding: EdgeInsets.only(top: 18),
+          child: UserDetailEditItem(
+            controller: _descriptionController,
+            label: translation.description,
+            multiline: true,
+          ),
+        )
       ],
     );
 
