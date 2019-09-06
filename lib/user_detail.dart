@@ -1,7 +1,9 @@
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart';
 import 'package:image_cropper/image_cropper.dart';
 import 'package:multi_image_picker/multi_image_picker.dart';
 import 'package:timeline/view_photo.dart';
@@ -88,13 +90,14 @@ Future<UserDetails> fetchUserDetail(String username) async {
   );
 }
 
-String _guessMimeType(String path) {
-  final reg = RegExp(r'\.\w*$');
-  final extension = reg.stringMatch(path).substring(1);
-  if (extension == 'png') return 'image/png';
-  if (extension == 'jpg' || extension == 'jpeg') return 'image/jpeg';
-  if (extension == 'gif') return 'image/gif';
-  if (extension == 'webp') return 'image/webp';
+String _getImageMimeType(List<int> data) {
+  final d = Uint8List.fromList(data);
+  final decoder = findDecoderForData(d);
+
+  if (decoder is PngDecoder) return 'image/png';
+  if (decoder is JpegDecoder) return 'image/jpeg';
+  if (decoder is GifDecoder) return 'image/gif';
+  if (decoder is WebPDecoder) return 'image/webp';
   return null;
 }
 
@@ -428,7 +431,9 @@ class _UserDetailPageState extends State<UserDetailPage> {
                       ratioY: 1.0,
                     );
 
-                    final mimeType = _guessMimeType(croppedImage.path);
+                    final data = await croppedImage.readAsBytes();
+
+                    final mimeType = _getImageMimeType(data);
                     if (mimeType == null) {
                       showErrorDialog(
                         context,
@@ -447,8 +452,7 @@ class _UserDetailPageState extends State<UserDetailPage> {
                               .userDetail
                               .uploadAvatar),
                           operationFunction: () async {
-                            await putUserAvatar(username, mimeType,
-                                await croppedImage.readAsBytes());
+                            await putUserAvatar(username, mimeType, data);
                           },
                         );
                       },
